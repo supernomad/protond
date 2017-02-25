@@ -105,6 +105,10 @@ func (cfg *Config) version(exit bool) {
 
 func (cfg *Config) parseFile() error {
 	if cfg.ConfFile != "" {
+		if !FileExists(cfg.ConfFile) {
+			return errors.New("the supplied configuration file does not exist")
+		}
+
 		buf, err := ioutil.ReadFile(cfg.ConfFile)
 		if err != nil {
 			return err

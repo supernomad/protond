@@ -15,6 +15,15 @@ const (
 	confFile = "../dist/test/protond.yml"
 )
 
+func TestFileExists(t *testing.T) {
+	if FileExists("/this/path/should/never/exist") {
+		t.Fatal("FileExists returned true for a non-existant file")
+	}
+	if !FileExists("common.go") {
+		t.Fatal("FileExists returned false for a file that should always exist")
+	}
+}
+
 func TestNewConfig(t *testing.T) {
 	os.Setenv("PROTOND_CONF_FILE", confFile)
 	os.Setenv("PROTOND_PID_FILE", "../protond.pid")

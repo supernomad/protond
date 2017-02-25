@@ -1,0 +1,17 @@
+[Unit]
+Description=protond stream parse, mangler, and alert service
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+EnvironmentFile=-/etc/default/protond
+EnvironmentFile=-/etc/protond/protond.env
+PIDFile=/var/run/protond/protond.pid
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+ExecPreStart=/bin/mkdir /var/run/protond
+ExecStart=/usr/sbin/protond
+
+[Install]
+WantedBy=default.target
