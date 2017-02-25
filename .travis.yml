@@ -1,0 +1,11 @@
+---
+# Copyright (c) 2017 Christian Saide <Supernomad>
+# Licensed under the MPL-2.0, for details see https://github.com/Supernomad/protond/blob/master/LICENSE
+
+language: go
+
+go:
+  - 1.7.x
+
+script:
+  - make PUSH_COVERAGE="push" ci
