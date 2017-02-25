@@ -37,9 +37,9 @@ The only exceptions to the above are the two special cli argments '-h'|'--help' 
 */
 type Config struct {
 	ConfFile   string            `skip:"false"  type:"string"    short:"c"    long:"conf-file"         default:""                              description:"The configuration file to use to configure protond."`
-	NumWorkers int               `skip:"false"  type:"int"       short:"n"    long:"workers"           default:"0"                             description:"The number of protond workers to use, set to 0 for a worker per available cpu core."`
+	NumWorkers int               `skip:"false"  type:"int"       short:"w"    long:"workers"           default:"0"                             description:"The number of protond workers to use, set to 0 for a worker per available cpu core."`
 	DataDir    string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
-	PidFile    string            `skip:"false"  type:"string"    short:"pf"   long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
+	PidFile    string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
 	log        *Logger           `skip:"true"` // The internal logger to use
 	fileData   map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
 }
@@ -47,8 +47,6 @@ type Config struct {
 func (cfg *Config) cliArg(short, long string, isFlag bool) (string, bool) {
 	for i, arg := range os.Args {
 		if arg == "-"+short ||
-			arg == "--"+short ||
-			arg == "-"+long ||
 			arg == "--"+long {
 			if !isFlag {
 				return os.Args[i+1], true

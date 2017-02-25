@@ -1,0 +1,17 @@
+---
+# Copyright (c) 2016 Christian Saide <Supernomad>
+# Licensed under the MPL-2.0, for details see https://github.com/Supernomad/protond/blob/master/LICENSE
+
+version: "2"
+services:
+  protond:
+    container_name: protond
+    build:
+      context: "./dist"
+    restart: unless-stopped
+    volumes:
+      - protond:/var/lib/protond/
+    command: ["--help"]
+volumes:
+  protond:
+    driver: local
