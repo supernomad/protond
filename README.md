@@ -1,4 +1,6 @@
 # `protond`
+[![Build Status](https://travis-ci.org/Supernomad/protond.svg?branch=master)](https://travis-ci.org/Supernomad/protond) [![Coverage Status](https://coveralls.io/repos/github/Supernomad/protond/badge.svg?branch=master)](https://coveralls.io/github/Supernomad/protond?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/Supernomad/protond)](https://goreportcard.com/report/github.com/Supernomad/protond) [![GoDoc](https://godoc.org/github.com/Supernomad/protond?status.png)](https://godoc.org/github.com/Supernomad/protond)
+
 A simple data stream parser, mangler, and alert system
 
 ### Contributing
