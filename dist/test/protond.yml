@@ -1,0 +1,5 @@
+---
+# Copyright (c) 2016 Christian Saide <Supernomad>
+# Licensed under the MPL-2.0, for details see https://github.com/Supernomad/protond/blob/master/LICENSE
+
+data-dir: "/var/lib/testing-protond"
