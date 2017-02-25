@@ -43,6 +43,7 @@ coverage:
 
 cleanup:
 	@echo "Cleaning up..."
+	@rm -f protond.pid
 
 release:
 	@echo "Generating release tar balls..."
