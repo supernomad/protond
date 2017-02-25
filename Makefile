@@ -4,6 +4,15 @@
 PUSH_COVERAGE=""
 BENCH_MAX_PROCS=1
 
+setup_var_run:
+	@echo "Creating /var/run/protond..."
+	@mkdir /var/run/protond
+	@chown $$SUDO_USER /var/run/protond
+
+build_docker:
+	@echo "Building test docker container..."
+	@docker-compose build
+
 compile:
 	@echo "Compiling protond..."
 	@go install github.com/Supernomad/protond
