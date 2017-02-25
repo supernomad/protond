@@ -71,7 +71,7 @@ func (sig *Signaler) Wait(exec bool) error {
 	case syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT:
 		return sig.terminate(exec)
 	default:
-		return errors.New("build error recieved undefined signal")
+		return errors.New("build error received undefined signal")
 	}
 }
 

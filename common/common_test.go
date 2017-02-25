@@ -17,7 +17,7 @@ const (
 
 func TestFileExists(t *testing.T) {
 	if FileExists("/this/path/should/never/exist") {
-		t.Fatal("FileExists returned true for a non-existant file")
+		t.Fatal("FileExists returned true for a non-existent file")
 	}
 	if !FileExists("common.go") {
 		t.Fatal("FileExists returned false for a file that should always exist")
