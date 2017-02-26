@@ -11,7 +11,7 @@ import (
 // Event represents an arbitrary event passing through protond.
 type Event struct {
 	Timestamp time.Time              `json:"timestamp"`
-	Input     string                 `jsone:"input"`
+	Input     string                 `json:"input"`
 	Data      map[string]interface{} `json:"data"`
 }
 

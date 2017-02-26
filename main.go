@@ -29,16 +29,16 @@ func main() {
 	workers := make([]*worker.Worker, cfg.NumWorkers)
 
 	filters := make([]filter.Filter, 0)
-	if len(cfg.Filters) == 0 {
+	for i := 0; i < len(cfg.Filters); i++ {
+		temp, err := filter.New(cfg.Filters[i].Type, cfg.Filters[i], cfg)
+		handleError(cfg.Log, err)
+
+		filters = append(filters, temp)
+	}
+
+	if len(filters) == 0 {
 		noop, _ := filter.New(filter.NoopFilter, nil, cfg)
 		filters = append(filters, noop)
-	} else {
-		for i := 0; i < len(cfg.Filters); i++ {
-			temp, err := filter.New(cfg.Filters[i].Type, cfg.Filters[i], cfg)
-			handleError(cfg.Log, err)
-
-			filters = append(filters, temp)
-		}
 	}
 
 	stdin, _ := input.New(input.StdinInput, cfg)
@@ -54,7 +54,7 @@ func main() {
 	log.Info.Println("[MAIN]", "protond start up complete.")
 
 	err = signaler.Wait(true)
-	handleError(log, err)
+	handleError(cfg.Log, err)
 
 	for i := 0; i < cfg.NumWorkers; i++ {
 		workers[i].Stop()
