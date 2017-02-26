@@ -137,4 +137,7 @@ func TestParseEventData(t *testing.T) {
 	if err != nil {
 		t.Fatal("ParseEventData returned an error parsing arbitrary event data.")
 	}
+	if data["woot"].(float64) != 234 {
+		t.Fatal("ParseEventData returned an incorrect value for arbitrary data.")
+	}
 }

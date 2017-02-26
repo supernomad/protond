@@ -10,6 +10,16 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
+func TestNonExistentFilterPlugin(t *testing.T) {
+	nonExistent, err := New("doesn't exist", nil, nil)
+	if err == nil {
+		t.Fatal("Something is very very wrong.")
+	}
+	if nonExistent != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+}
+
 func TestNoop(t *testing.T) {
 	noop, err := New(NoopFilter, nil, nil)
 	if err != nil {
