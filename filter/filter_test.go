@@ -10,6 +10,33 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
+func TestNoop(t *testing.T) {
+	noop, err := New(NoopFilter, nil, nil)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": 101010101,
+		},
+	}
+	name := noop.Name()
+	if name != "Noop" {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	test, err := noop.Run(event)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	if test != event {
+		t.Fatal("Something is very very wrong.")
+	}
+}
+
 func TestJavascript(t *testing.T) {
 	config := &common.FilterConfig{
 		Name: "Test Filter",
@@ -20,7 +47,10 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := newJavascript(nil, config)
+	javascript, err := New(JavascriptFilter, config, nil)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
 
 	event := &common.Event{
 		Timestamp: time.Now(),
@@ -59,7 +89,10 @@ func TestJavascriptImproperTypeReturn(t *testing.T) {
 			event = "testing"
 		`,
 	}
-	javascript, err := newJavascript(nil, config)
+	javascript, err := New(JavascriptFilter, config, nil)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
 
 	event := &common.Event{
 		Timestamp: time.Now(),
@@ -87,7 +120,10 @@ func TestJavascriptImproperScript(t *testing.T) {
 			}, 100)
 		`,
 	}
-	javascript, err := newJavascript(nil, config)
+	javascript, err := New(JavascriptFilter, config, nil)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
 
 	event := &common.Event{
 		Timestamp: time.Now(),
