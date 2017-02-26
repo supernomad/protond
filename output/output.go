@@ -9,12 +9,12 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
-// Type defines the kind of output plugin to use.
-type Type int
+// Plugin defines the kind of output plugin to use.
+type Plugin int
 
 const (
-	// Stdout defines an output plugin that pushes data to stdout.
-	Stdout Type = iota
+	// StdoutOutput defines an output plugin that pushes data to stdout.
+	StdoutOutput Plugin = iota
 )
 
 // Output is the interface that plugins must adhere to for operation as an output plugin.
@@ -22,15 +22,18 @@ type Output interface {
 	// Send should take the passed in event and send it to the arbitrary endpoint or data sink.
 	Send(*common.Event) error
 
+	// Name returns the name of the output plugin.
+	Name() string
+
 	// Close should completely terminate all functionality and destroy the output plugin.
 	Close() error
 }
 
-// New generates an output plugin based on the passed in type and user defined configuration.
-func New(outputType Type, cfg *common.Config) (Output, error) {
-	switch outputType {
-	case Stdout:
-
+// New generates an output plugin based on the passed in plugin and user defined configuration.
+func New(outputPlugin Plugin, cfg *common.Config) (Output, error) {
+	switch outputPlugin {
+	case StdoutOutput:
+		return newStdout(cfg)
 	}
-	return nil, errors.New("specified output type does not exist")
+	return nil, errors.New("specified output plugin does not exist")
 }

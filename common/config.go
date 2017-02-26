@@ -37,10 +37,11 @@ The only exceptions to the above are the two special cli argments '-h'|'--help' 
 */
 type Config struct {
 	ConfFile   string            `skip:"false"  type:"string"    short:"c"    long:"conf-file"         default:""                              description:"The configuration file to use to configure protond."`
+	Backlog    int               `skip:"false"  type:"int"       short:"b"    long:"backlog"           default:"1024"                          description:"The number of in flight events allowed per worker."`
 	NumWorkers int               `skip:"false"  type:"int"       short:"w"    long:"workers"           default:"0"                             description:"The number of protond workers to use, set to 0 for a worker per available cpu core."`
 	DataDir    string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
 	PidFile    string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
-	log        *Logger           `skip:"true"` // The internal logger to use
+	Log        *Logger           `skip:"true"` // The internal logger to use
 	fileData   map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
 }
 
@@ -75,7 +76,7 @@ func (cfg *Config) fileArg(long string) (string, bool) {
 }
 
 func (cfg *Config) usage(exit bool) {
-	cfg.log.Plain.Println("Usage of protond:")
+	cfg.Log.Plain.Println("Usage of protond:")
 	st := reflect.TypeOf(*cfg)
 
 	numFields := st.NumField()
@@ -86,8 +87,8 @@ func (cfg *Config) usage(exit bool) {
 			continue
 		}
 
-		cfg.log.Plain.Printf("\t-%s|--%s  (%s)\n", short, long, fieldType)
-		cfg.log.Plain.Printf("\t\t%s (default: '%s')\n", description, def)
+		cfg.Log.Plain.Printf("\t-%s|--%s  (%s)\n", short, long, fieldType)
+		cfg.Log.Plain.Printf("\t\t%s (default: '%s')\n", description, def)
 	}
 
 	if exit {
@@ -96,7 +97,7 @@ func (cfg *Config) usage(exit bool) {
 }
 
 func (cfg *Config) version(exit bool) {
-	cfg.log.Plain.Printf("protond: v%s\n", version.VERSION)
+	cfg.Log.Plain.Printf("protond: v%s\n", version.VERSION)
 
 	if exit {
 		os.Exit(0)
@@ -237,7 +238,7 @@ func (cfg *Config) computeArgs() error {
 // NewConfig creates a new Config struct based on user supplied input.
 func NewConfig(log *Logger) (*Config, error) {
 	cfg := &Config{
-		log: log,
+		Log: log,
 	}
 
 	// Handle the help and version commands if the exist
