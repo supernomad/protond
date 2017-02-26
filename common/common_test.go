@@ -47,8 +47,7 @@ func TestNewConfig(t *testing.T) {
 		t.Fatal("NewConfig didn't pick up the environment variable replacement for PidFile")
 	}
 
-	cfg.usage(false)
-	cfg.version(false)
+	cfg.parseSpecial([]string{"-h", "-v"}, false)
 }
 
 func TestNewLogger(t *testing.T) {

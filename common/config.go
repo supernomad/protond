@@ -39,6 +39,8 @@ type Config struct {
 	ConfFile        string            `skip:"false"  type:"string"    short:"c"    long:"conf-file"         default:""                              description:"The configuration file to use to configure protond."`
 	Backlog         int               `skip:"false"  type:"int"       short:"b"    long:"backlog"           default:"1024"                          description:"The number of in flight events allowed per worker."`
 	NumWorkers      int               `skip:"false"  type:"int"       short:"w"    long:"workers"           default:"0"                             description:"The number of protond workers to use, set to 0 for a worker per available cpu core."`
+	InputDirectory  string            `skip:"false"  type:"string"    short:"i"    long:"input-directory"   default:"/etc/protond/inputs.d"         description:"The directory containing arbitrary input filters for protond to use for ingesting events."`
+	OutputDirectory string            `skip:"false"  type:"string"    short:"o"    long:"output-directory"  default:"/etc/protond/outputs.d"        description:"The directory containing arbitrary input filters for protond to use for ingesting events."`
 	FilterDirectory string            `skip:"false"  type:"string"    short:"f"    long:"filter-directory"  default:"/etc/protond/filters.d"        description:"The directory containing arbitrary javascript filters for protond to use for event filtering."`
 	DataDir         string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
 	PidFile         string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
@@ -147,8 +149,8 @@ func (cfg *Config) parseField(tag reflect.StructTag) (skip, fieldType, short, lo
 	return
 }
 
-func (cfg *Config) parseSpecial(exit bool) {
-	for _, arg := range os.Args {
+func (cfg *Config) parseSpecial(args []string, exit bool) {
+	for _, arg := range args {
 		switch {
 		case arg == "-h" || arg == "--help":
 			cfg.usage(exit)
@@ -282,7 +284,7 @@ func NewConfig(log *Logger) (*Config, error) {
 	}
 
 	// Handle the help and version commands if the exist
-	cfg.parseSpecial(true)
+	cfg.parseSpecial(os.Args, true)
 
 	// Handle parsing user supplied configuration data
 	if err := cfg.parseArgs(); err != nil {
