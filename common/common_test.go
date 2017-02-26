@@ -130,3 +130,11 @@ func TestEvent(t *testing.T) {
 		t.Fatal("Event.String(true) returned an empty string for a valid event.")
 	}
 }
+
+func TestParseEventData(t *testing.T) {
+	testStr := `{"woot": 234, "sub_obj":{"hello": "world", "array":[1,2,3,true]}, "sub_array":["woot", {"sub":"object"}]}`
+	data, err := ParseEventData(testStr)
+	if err != nil {
+		t.Fatal("ParseEventData returned an error parsing arbitrary event data.")
+	}
+}
