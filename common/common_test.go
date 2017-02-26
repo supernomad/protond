@@ -88,3 +88,45 @@ func TestSignaler(t *testing.T) {
 		t.Fatal("Wait returned an error: " + err.Error())
 	}
 }
+
+func TestEvent(t *testing.T) {
+	event := &Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"number": 101010101,
+			"array": []interface{}{
+				"woot",
+				"awesome",
+				10101,
+				false,
+				[]interface{}{"hello", "sub", "array"},
+			},
+			"map": map[string]interface{}{
+				"first":  "value",
+				"second": 42,
+				"third":  []interface{}{"this", "is", "another", 2, "sub", "array"},
+				"fourth": map[string]interface{}{"sub": "map", "working": 30303, "yes": true},
+			},
+		},
+	}
+
+	bytes := event.Bytes(false)
+	if bytes == nil {
+		t.Fatal("Event.Bytes(false) returned nil for a valid event.")
+	}
+
+	bytes = event.Bytes(true)
+	if bytes == nil {
+		t.Fatal("Event.Bytes(true) returned nil for a valid event.")
+	}
+
+	str := event.String(false)
+	if str == "" {
+		t.Fatal("Event.String(false) returned an empty string for a valid event.")
+	}
+
+	str = event.String(true)
+	if str == "" {
+		t.Fatal("Event.String(true) returned an empty string for a valid event.")
+	}
+}
