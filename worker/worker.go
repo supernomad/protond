@@ -55,6 +55,7 @@ func (w *Worker) filter() {
 					break
 				}
 			}
+
 			if err == nil {
 				w.outgoing <- event
 			}
@@ -103,14 +104,8 @@ func (w *Worker) Stop() error {
 	close(w.stopReading)
 
 	w.stopFiltering <- struct{}{}
-	for i := 0; i < len(w.filters); i++ {
-		err := w.filters[i].Close()
-		if err != nil {
-			return err
-		}
-	}
-
 	w.stopWriting <- struct{}{}
+
 	for i := 0; i < len(w.outputs); i++ {
 		err := w.outputs[i].Close()
 		if err != nil {

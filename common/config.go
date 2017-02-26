@@ -36,13 +36,15 @@ The user supplied configuration is processed via a structured hierarchy:
 The only exceptions to the above are the two special cli argments '-h'|'--help' or '-v'|'--version' which will output usage information or version information respectively and then exit the application.
 */
 type Config struct {
-	ConfFile   string            `skip:"false"  type:"string"    short:"c"    long:"conf-file"         default:""                              description:"The configuration file to use to configure protond."`
-	Backlog    int               `skip:"false"  type:"int"       short:"b"    long:"backlog"           default:"1024"                          description:"The number of in flight events allowed per worker."`
-	NumWorkers int               `skip:"false"  type:"int"       short:"w"    long:"workers"           default:"0"                             description:"The number of protond workers to use, set to 0 for a worker per available cpu core."`
-	DataDir    string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
-	PidFile    string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
-	Log        *Logger           `skip:"true"` // The internal logger to use
-	fileData   map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
+	ConfFile        string            `skip:"false"  type:"string"    short:"c"    long:"conf-file"         default:""                              description:"The configuration file to use to configure protond."`
+	Backlog         int               `skip:"false"  type:"int"       short:"b"    long:"backlog"           default:"1024"                          description:"The number of in flight events allowed per worker."`
+	NumWorkers      int               `skip:"false"  type:"int"       short:"w"    long:"workers"           default:"0"                             description:"The number of protond workers to use, set to 0 for a worker per available cpu core."`
+	FilterDirectory string            `skip:"false"  type:"string"    short:"f"    long:"filter-directory"  default:"/etc/protond/filters.d"        description:"The directory containing arbitrary javascript filters for protond to use for event filtering."`
+	DataDir         string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
+	PidFile         string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
+	Log             *Logger           `skip:"true"` // The internal logger to use
+	Filters         []*FilterConfig   `skip:"true"` // The raw javascript filters to use during event filtering
+	fileData        map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
 }
 
 func (cfg *Config) cliArg(short, long string, isFlag bool) (string, bool) {
@@ -106,7 +108,7 @@ func (cfg *Config) version(exit bool) {
 
 func (cfg *Config) parseFile() error {
 	if cfg.ConfFile != "" {
-		if !FileExists(cfg.ConfFile) {
+		if !PathExists(cfg.ConfFile) {
 			return errors.New("the supplied configuration file does not exist")
 		}
 
@@ -148,9 +150,9 @@ func (cfg *Config) parseField(tag reflect.StructTag) (skip, fieldType, short, lo
 func (cfg *Config) parseSpecial(exit bool) {
 	for _, arg := range os.Args {
 		switch {
-		case arg == "-h" || arg == "--h" || arg == "-help" || arg == "--help":
+		case arg == "-h" || arg == "--help":
 			cfg.usage(exit)
-		case arg == "-v" || arg == "--v" || arg == "-version" || arg == "--version":
+		case arg == "-v" || arg == "--version":
 			cfg.version(exit)
 		}
 	}
@@ -232,7 +234,45 @@ func (cfg *Config) computeArgs() error {
 	os.MkdirAll(path.Dir(cfg.PidFile), os.ModeDir)
 
 	pid := os.Getpid()
-	return ioutil.WriteFile(cfg.PidFile, []byte(strconv.Itoa(pid)), os.ModePerm)
+
+	err := ioutil.WriteFile(cfg.PidFile, []byte(strconv.Itoa(pid)), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	if !PathExists(cfg.FilterDirectory) {
+		cfg.Log.Warn.Println("The specified FilterDirectory path does not exist, using Noop filter.")
+		return nil
+	}
+
+	files, err := ioutil.ReadDir(cfg.FilterDirectory)
+	if err != nil {
+		return err
+	}
+
+	cfg.Filters = make([]*FilterConfig, 0)
+	for i := 0; i < len(files); i++ {
+		name := files[i].Name()
+		ext := path.Ext(name)
+		switch ext {
+		case ".js":
+			fileData, err := ioutil.ReadFile(path.Join(cfg.FilterDirectory, name))
+			if err != nil {
+				return err
+			}
+
+			filterCfg := &FilterConfig{
+				Type: ext[1:],
+				Name: name,
+				Code: string(fileData),
+			}
+			cfg.Filters = append(cfg.Filters, filterCfg)
+		default:
+			cfg.Log.Warn.Printf("Filter file '%s' is not one of the compatible filter types: 'js'.", name)
+		}
+	}
+
+	return nil
 }
 
 // NewConfig creates a new Config struct based on user supplied input.

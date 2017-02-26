@@ -28,18 +28,30 @@ func main() {
 
 	workers := make([]*worker.Worker, cfg.NumWorkers)
 
+	filters := make([]filter.Filter, 0)
+	if len(cfg.Filters) == 0 {
+		noop, _ := filter.New(filter.NoopFilter, nil, cfg)
+		filters = append(filters, noop)
+	} else {
+		for i := 0; i < len(cfg.Filters); i++ {
+			temp, err := filter.New(cfg.Filters[i].Type, cfg.Filters[i], cfg)
+			handleError(cfg.Log, err)
+
+			filters = append(filters, temp)
+		}
+	}
+
 	stdin, _ := input.New(input.StdinInput, cfg)
-	noop, _ := filter.New(filter.NoopFilter, cfg)
 	stdout, _ := output.New(output.StdoutOutput, cfg)
 
 	for i := 0; i < cfg.NumWorkers; i++ {
-		workers[i] = worker.New(cfg, []input.Input{stdin}, []filter.Filter{noop}, []output.Output{stdout})
+		workers[i] = worker.New(cfg, []input.Input{stdin}, filters, []output.Output{stdout})
 		workers[i].Start()
 	}
 
 	signaler := common.NewSignaler(log, cfg, nil, map[string]string{})
 
-	log.Info.Println("[MAIN] protond start up complete.")
+	log.Info.Println("[MAIN]", "protond start up complete.")
 
 	err = signaler.Wait(true)
 	handleError(log, err)

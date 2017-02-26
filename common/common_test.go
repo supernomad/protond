@@ -15,12 +15,12 @@ const (
 	confFile = "../dist/test/protond.yml"
 )
 
-func TestFileExists(t *testing.T) {
-	if FileExists("/this/path/should/never/exist") {
-		t.Fatal("FileExists returned true for a non-existent file")
+func TestPathExists(t *testing.T) {
+	if PathExists("/this/path/should/never/exist") {
+		t.Fatal("PathExists returned true for a non-existent file")
 	}
-	if !FileExists("common.go") {
-		t.Fatal("FileExists returned false for a file that should always exist")
+	if !PathExists("common.go") {
+		t.Fatal("PathExists returned false for a file that should always exist")
 	}
 }
 
@@ -28,7 +28,7 @@ func TestNewConfig(t *testing.T) {
 	os.Setenv("PROTOND_CONF_FILE", confFile)
 	os.Setenv("PROTOND_PID_FILE", "../protond.pid")
 
-	os.Args = append(os.Args, "-w", "100")
+	os.Args = append(os.Args, "-w", "100", "-f", "../dist/test/filters.d")
 	cfg, err := NewConfig(NewLogger(NoopLogger))
 
 	if err != nil {

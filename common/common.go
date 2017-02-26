@@ -7,9 +7,9 @@ import (
 	"os"
 )
 
-// FileExists determines whether or not the specified path exists on disk.
-func FileExists(file string) bool {
-	if _, err := os.Stat(file); err == nil {
+// PathExists determines whether or not the specified path exists on disk.
+func PathExists(path string) bool {
+	if _, err := os.Stat(path); err == nil {
 		return true
 	}
 

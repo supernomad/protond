@@ -11,6 +11,7 @@ import (
 // Event represents an arbitrary event passing through protond.
 type Event struct {
 	Timestamp time.Time              `json:"timestamp"`
+	Input     string                 `jsone:"input"`
 	Data      map[string]interface{} `json:"data"`
 }
 
@@ -28,4 +29,11 @@ func (e *Event) Bytes(pretty bool) []byte {
 // String will return the string representation of the event struct, optionally "pretty" printed, if there is an error during the marshalling process the returned string will be empty.
 func (e *Event) String(pretty bool) string {
 	return string(e.Bytes(pretty))
+}
+
+// ParseEventData will convert the supplied string to an Event struct pointer.
+func ParseEventData(str string) (map[string]interface{}, error) {
+	var eventData map[string]interface{}
+	err := json.Unmarshal([]byte(str), &eventData)
+	return eventData, err
 }

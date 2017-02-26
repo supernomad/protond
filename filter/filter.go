@@ -9,12 +9,12 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
-// Plugin defines the kind of filter plugin to use.
-type Plugin int
-
 const (
 	// NoopFilter defines a filter that does nothing.
-	NoopFilter Plugin = iota
+	NoopFilter = "noop"
+
+	// JavascriptFilter defines a javascript based filter.
+	JavascriptFilter = "js"
 )
 
 // Filter is the interface that plugins must adhere to for operation as a filter plugin.
@@ -24,16 +24,15 @@ type Filter interface {
 
 	// Name returns the name of the filter plugin.
 	Name() string
-
-	// Close should completely terminate all functionality and destroy the filter plugin.
-	Close() error
 }
 
 // New generates a filter plugin based on the passed in plugin and user defined configuration.
-func New(filterPlugin Plugin, cfg *common.Config) (Filter, error) {
+func New(filterPlugin string, filterConfig *common.FilterConfig, cfg *common.Config) (Filter, error) {
 	switch filterPlugin {
 	case NoopFilter:
 		return newNoop(cfg)
+	case JavascriptFilter:
+		return newJavascript(cfg, filterConfig)
 	}
 	return nil, errors.New("specified filter plugin does not exist")
 }

@@ -23,11 +23,6 @@ func (noop *Noop) Name() string {
 	return noop.name
 }
 
-// Close will close the Noop plugin.
-func (noop *Noop) Close() error {
-	return nil
-}
-
 func newNoop(cfg *common.Config) (Filter, error) {
 	noop := &Noop{
 		cfg:  cfg,

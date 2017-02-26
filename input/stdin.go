@@ -19,10 +19,11 @@ type Stdin struct {
 }
 
 // Next will return the next event from standard input.
-func (s *Stdin) Next() (*common.Event, error) {
-	text, _ := s.reader.ReadString('\n')
+func (stdin *Stdin) Next() (*common.Event, error) {
+	text, _ := stdin.reader.ReadString('\n')
 	event := &common.Event{
 		Timestamp: time.Now(),
+		Input:     stdin.name,
 		Data: map[string]interface{}{
 			"message": text[:len(text)-1],
 		},
@@ -32,12 +33,12 @@ func (s *Stdin) Next() (*common.Event, error) {
 }
 
 // Name returns 'Stdin'.
-func (s *Stdin) Name() string {
-	return s.name
+func (stdin *Stdin) Name() string {
+	return stdin.name
 }
 
 // Close will close the Stdin plugin.
-func (s *Stdin) Close() error {
+func (stdin *Stdin) Close() error {
 	return nil
 }
 
