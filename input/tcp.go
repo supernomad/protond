@@ -5,6 +5,7 @@ package input
 
 import (
 	"bufio"
+	"errors"
 	"net"
 	"time"
 
@@ -103,6 +104,10 @@ func newTCP(cfg *common.Config, inOutConfig *common.InOutConfig) (Input, error) 
 		cfg:         cfg,
 		inOutConfig: inOutConfig,
 		messages:    make(chan string, cfg.Backlog),
+	}
+
+	if tcp.inOutConfig.Config["port"] == "" {
+		return nil, errors.New("configuration for the tcp input plugin is missing a port definition")
 	}
 
 	return tcp, nil
