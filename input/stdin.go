@@ -20,7 +20,11 @@ type Stdin struct {
 
 // Next will return the next event from standard input.
 func (stdin *Stdin) Next() (*common.Event, error) {
-	text, _ := stdin.reader.ReadString('\n')
+	text, err := stdin.reader.ReadString('\n')
+	if err != nil {
+		return nil, err
+	}
+
 	event := &common.Event{
 		Timestamp: time.Now(),
 		Input:     stdin.name,
@@ -49,10 +53,19 @@ func (stdin *Stdin) Close() error {
 
 func newStdin(cfg *common.Config) (Input, error) {
 	stdin := &Stdin{
-		cfg:    cfg,
-		name:   "Stdin",
-		reader: bufio.NewReader(os.Stdin),
+		cfg:  cfg,
+		name: "Stdin",
 	}
 
+	if tmpFile := os.Getenv("_TESTING_PROTOND"); tmpFile != "" {
+		file, err := os.Open(tmpFile)
+		if err != nil {
+			return nil, err
+		}
+
+		stdin.reader = bufio.NewReader(file)
+	} else {
+		stdin.reader = bufio.NewReader(os.Stdin)
+	}
 	return stdin, nil
 }

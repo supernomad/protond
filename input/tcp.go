@@ -27,7 +27,7 @@ func (tcp *TCP) accept() {
 			break
 		}
 
-		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp connection recieved.")
+		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp connection received.")
 		go tcp.handleConn(conn)
 	}
 }
@@ -43,7 +43,7 @@ func (tcp *TCP) handleConn(conn *net.TCPConn) {
 			break
 		}
 
-		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp message recieved.")
+		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp message received.")
 		tcp.messages <- message
 	}
 }
