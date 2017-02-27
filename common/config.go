@@ -46,6 +46,8 @@ type Config struct {
 	DataDir         string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
 	PidFile         string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
 	Log             *Logger           `skip:"true"` // The internal logger to use
+	Inputs          []*InOutConfig    `skip:"true"` // The raw input configurations to use for event ingestion
+	Outputs         []*InOutConfig    `skip:"true"` // The raw input configurations to use for event propagation
 	Filters         []*FilterConfig   `skip:"true"` // The raw javascript filters to use during event filtering
 	fileData        map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
 }
@@ -243,37 +245,48 @@ func (cfg *Config) computeArgs() error {
 		return err
 	}
 
-	if !PathExists(cfg.FilterDirectory) {
+	if PathExists(cfg.FilterDirectory) {
+		filterFiles, err := ioutil.ReadDir(cfg.FilterDirectory)
+		if err != nil {
+			return err
+		}
+
+		cfg.Filters = make([]*FilterConfig, 0)
+		for i := 0; i < len(filterFiles); i++ {
+			name := filterFiles[i].Name()
+			ext := path.Ext(name)
+			switch ext {
+			case ".js":
+				fileData, err := ioutil.ReadFile(path.Join(cfg.FilterDirectory, name))
+				if err != nil {
+					return err
+				}
+
+				filterCfg := &FilterConfig{
+					Type: ext[1:],
+					Name: name,
+					Code: string(fileData),
+				}
+				cfg.Filters = append(cfg.Filters, filterCfg)
+			default:
+				cfg.Log.Warn.Printf("Filter file '%s' is not one of the compatible filter types: 'js'.", name)
+			}
+		}
+	} else {
 		cfg.Log.Warn.Println("The specified FilterDirectory path does not exist, using Noop filter.")
-		return nil
 	}
 
-	files, err := ioutil.ReadDir(cfg.FilterDirectory)
+	inputConfigs, err := ParseInOutConfigs(cfg.InputDirectory, cfg.Log)
 	if err != nil {
 		return err
 	}
+	cfg.Inputs = inputConfigs
 
-	cfg.Filters = make([]*FilterConfig, 0)
-	for i := 0; i < len(files); i++ {
-		name := files[i].Name()
-		ext := path.Ext(name)
-		switch ext {
-		case ".js":
-			fileData, err := ioutil.ReadFile(path.Join(cfg.FilterDirectory, name))
-			if err != nil {
-				return err
-			}
-
-			filterCfg := &FilterConfig{
-				Type: ext[1:],
-				Name: name,
-				Code: string(fileData),
-			}
-			cfg.Filters = append(cfg.Filters, filterCfg)
-		default:
-			cfg.Log.Warn.Printf("Filter file '%s' is not one of the compatible filter types: 'js'.", name)
-		}
+	outputConfigs, err := ParseInOutConfigs(cfg.OutputDirectory, cfg.Log)
+	if err != nil {
+		return err
 	}
+	cfg.Outputs = outputConfigs
 
 	return nil
 }

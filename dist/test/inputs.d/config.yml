@@ -1,0 +1,6 @@
+---
+Name: "Test Yaml Config"
+Type: "tcp"
+Config:
+  host: "localhost"
+  port: "9999"

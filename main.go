@@ -41,11 +41,26 @@ func main() {
 		filters = append(filters, noop)
 	}
 
-	stdin, _ := input.New(input.StdinInput, cfg)
+	inputs := make([]input.Input, 0)
+	for i := 0; i < len(cfg.Inputs); i++ {
+		temp, err := input.New(cfg.Inputs[i].Type, cfg.Inputs[i], cfg)
+		handleError(cfg.Log, err)
+
+		err = temp.Open()
+		handleError(cfg.Log, err)
+
+		inputs = append(inputs, temp)
+	}
+
+	if len(inputs) == 0 {
+		stdin, _ := input.New(input.StdinInput, nil, cfg)
+		inputs = append(inputs, stdin)
+	}
+
 	stdout, _ := output.New(output.StdoutOutput, cfg)
 
 	for i := 0; i < cfg.NumWorkers; i++ {
-		workers[i] = worker.New(cfg, []input.Input{stdin}, filters, []output.Output{stdout})
+		workers[i] = worker.New(cfg, inputs, filters, []output.Output{stdout})
 		workers[i].Start()
 	}
 

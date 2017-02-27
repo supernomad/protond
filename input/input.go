@@ -9,12 +9,12 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
-// Plugin defines the kind of input plugin to use.
-type Plugin int
-
 const (
 	// StdinInput defines an input plugin that takes data from stdin.
-	StdinInput Plugin = iota
+	StdinInput = "stdin"
+
+	// TCPInput defines an input plugin that takes data from a tcp socket.
+	TCPInput = "tcp"
 )
 
 // Input is the interface that plugins must adhere to for operation as an input plugin.
@@ -25,15 +25,20 @@ type Input interface {
 	// Name returns the name of the input plugin.
 	Name() string
 
+	// Open should fully initialize the input plugin.
+	Open() error
+
 	// Close should completely terminate all functionality and destroy the input plugin.
 	Close() error
 }
 
 // New generates an input plugin based on the passed in plugin and user defined configuration.
-func New(inputPlugin Plugin, cfg *common.Config) (Input, error) {
+func New(inputPlugin string, inOutCfg *common.InOutConfig, cfg *common.Config) (Input, error) {
 	switch inputPlugin {
 	case StdinInput:
 		return newStdin(cfg)
+	case TCPInput:
+		return newTCP(cfg, inOutCfg)
 	}
 	return nil, errors.New("specified input plugin does not exist")
 }

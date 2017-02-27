@@ -140,3 +140,27 @@ func TestParseEventData(t *testing.T) {
 		t.Fatal("ParseEventData returned an incorrect value for arbitrary data.")
 	}
 }
+
+func TestParseInOutConfigs(t *testing.T) {
+	dir := "../dist/test/inputs.d"
+	configs, err := ParseInOutConfigs(dir, NewLogger(NoopLogger))
+
+	if err != nil {
+		t.Fatal("Something is very wrong.")
+	}
+	if len(configs) != 2 {
+		t.Fatal("ParseInOutConfigs failed to pick up one of the config, or picked up an incorrectly formatted file.")
+	}
+}
+
+func TestParseInOutConfigsIncorrectPath(t *testing.T) {
+	dir := "/this/path/will/never/ever/exist"
+	configs, err := ParseInOutConfigs(dir, NewLogger(NoopLogger))
+
+	if err != nil {
+		t.Fatal("Something is very wrong.")
+	}
+	if len(configs) != 0 {
+		t.Fatal("ParseInOutConfigs failed to skip a non-existent path.")
+	}
+}

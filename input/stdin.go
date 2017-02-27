@@ -37,6 +37,11 @@ func (stdin *Stdin) Name() string {
 	return stdin.name
 }
 
+// Open will open the Stdin plugin.
+func (stdin *Stdin) Open() error {
+	return nil
+}
+
 // Close will close the Stdin plugin.
 func (stdin *Stdin) Close() error {
 	return nil
