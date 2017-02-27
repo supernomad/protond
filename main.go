@@ -21,7 +21,12 @@ func handleError(log *common.Logger, err error) {
 }
 
 func main() {
-	log := common.NewLogger(common.InfoLogger)
+	logger := common.InfoLogger
+	if os.Getenv("PROTOND_DEBUG") != "" {
+		logger = common.DebugLogger
+	}
+
+	log := common.NewLogger(logger)
 
 	cfg, err := common.NewConfig(log)
 	handleError(cfg.Log, err)

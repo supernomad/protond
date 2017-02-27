@@ -13,9 +13,9 @@ import (
 
 // InOutConfig is a struct representing a input plugin configuration.
 type InOutConfig struct {
-	Type   string
-	Name   string
-	Config map[string]string
+	Type   string            `json:"type" yaml:"type"`
+	Name   string            `json:"name" yaml:"name"`
+	Config map[string]string `json:"config" yaml:"config"`
 }
 
 // ParseInOutConfigs parses a directory of files and returns the resulting array of configs.

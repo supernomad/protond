@@ -27,6 +27,7 @@ func (tcp *TCP) accept() {
 			break
 		}
 
+		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp connection recieved.")
 		go tcp.handleConn(conn)
 	}
 }
@@ -38,10 +39,11 @@ func (tcp *TCP) handleConn(conn *net.TCPConn) {
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
-			tcp.cfg.Log.Error.Println("[TCP]", "Error reading from connection with the tcp plugin.")
+			tcp.cfg.Log.Debug.Println("[TCP]", "Error reading from connection with the tcp plugin, considering connection dead and moving on.")
 			break
 		}
 
+		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp message recieved.")
 		tcp.messages <- message
 	}
 }
@@ -77,7 +79,11 @@ func (tcp *TCP) Open() error {
 	if err != nil {
 		return err
 	}
+
+	tcp.cfg.Log.Debug.Printf("[TCP] New tcp listener created on %s:%s.", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"])
 	tcp.listener = l
+
+	go tcp.accept()
 
 	return nil
 }
@@ -96,6 +102,7 @@ func newTCP(cfg *common.Config, inOutConfig *common.InOutConfig) (Input, error) 
 	tcp := &TCP{
 		cfg:         cfg,
 		inOutConfig: inOutConfig,
+		messages:    make(chan string, cfg.Backlog),
 	}
 
 	return tcp, nil
