@@ -27,7 +27,7 @@ type Filter interface {
 }
 
 // New generates a filter plugin based on the passed in plugin and user defined configuration.
-func New(filterPlugin string, filterConfig *common.FilterConfig, cfg *common.Config) (Filter, error) {
+func New(filterPlugin string, cfg *common.Config, filterConfig *common.FilterConfig) (Filter, error) {
 	switch filterPlugin {
 	case NoopFilter:
 		return newNoop(cfg)

@@ -19,10 +19,10 @@ type Stdout struct {
 }
 
 // Send writes the supplied event to standard output.
-func (s *Stdout) Send(event *common.Event) error {
+func (stdout *Stdout) Send(event *common.Event) error {
 	str := event.String(true)
 
-	n, err := s.writer.WriteString(str + "\n")
+	n, err := stdout.writer.WriteString(str + "\n")
 	if err != nil {
 		return err
 	}
@@ -30,16 +30,21 @@ func (s *Stdout) Send(event *common.Event) error {
 		return errors.New("failed writing the entire event to standard out")
 	}
 
-	return s.writer.Flush()
+	return stdout.writer.Flush()
 }
 
 // Name returns 'Stdout'.
-func (s *Stdout) Name() string {
-	return s.name
+func (stdout *Stdout) Name() string {
+	return stdout.name
+}
+
+// Open will open the Stdout plugin.
+func (stdout *Stdout) Open() error {
+	return nil
 }
 
 // Close will close the Stdout plugin.
-func (s *Stdout) Close() error {
+func (stdout *Stdout) Close() error {
 	return nil
 }
 

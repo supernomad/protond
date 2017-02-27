@@ -68,12 +68,12 @@ func TestStdin(t *testing.T) {
 }
 
 func TestTCP(t *testing.T) {
-	tcp, err := New(TCPInput, &common.InOutConfig{Name: "Testing TCP", Type: "tcp", Config: map[string]string{"host": "localhost"}}, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)})
+	tcp, err := New(TCPInput, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)}, &common.InOutConfig{Name: "Testing TCP", Type: "tcp", Config: map[string]string{"host": "localhost"}})
 	if err == nil || tcp != nil {
 		t.Fatal("tcp plugin did not throw an error when configured without a port definition.")
 	}
 
-	tcp, err = New(TCPInput, &common.InOutConfig{Name: "Testing TCP", Type: "tcp", Config: map[string]string{"host": "localhost", "port": "9090"}}, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)})
+	tcp, err = New(TCPInput, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)}, &common.InOutConfig{Name: "Testing TCP", Type: "tcp", Config: map[string]string{"host": "localhost", "port": "9090"}})
 	if err != nil {
 		t.Fatalf("tcp plugin threw an error for no reason: %s", err.Error())
 	}
@@ -107,5 +107,8 @@ func TestTCP(t *testing.T) {
 		t.Fatal("Something is wrong name wasn't handled properly.")
 	}
 
-	tcp.Close()
+	err = tcp.Close()
+	if err != nil {
+		t.Fatal("Something is wrong close wasn't handled properly.")
+	}
 }

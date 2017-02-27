@@ -35,20 +35,20 @@ func main() {
 
 	filters := make([]filter.Filter, 0)
 	for i := 0; i < len(cfg.Filters); i++ {
-		temp, err := filter.New(cfg.Filters[i].Type, cfg.Filters[i], cfg)
+		temp, err := filter.New(cfg.Filters[i].Type, cfg, cfg.Filters[i])
 		handleError(cfg.Log, err)
 
 		filters = append(filters, temp)
 	}
 
 	if len(filters) == 0 {
-		noop, _ := filter.New(filter.NoopFilter, nil, cfg)
+		noop, _ := filter.New(filter.NoopFilter, cfg, nil)
 		filters = append(filters, noop)
 	}
 
 	inputs := make([]input.Input, 0)
 	for i := 0; i < len(cfg.Inputs); i++ {
-		temp, err := input.New(cfg.Inputs[i].Type, cfg.Inputs[i], cfg)
+		temp, err := input.New(cfg.Inputs[i].Type, cfg, cfg.Inputs[i])
 		handleError(cfg.Log, err)
 
 		err = temp.Open()
@@ -58,14 +58,28 @@ func main() {
 	}
 
 	if len(inputs) == 0 {
-		stdin, _ := input.New(input.StdinInput, nil, cfg)
+		stdin, _ := input.New(input.StdinInput, cfg, nil)
 		inputs = append(inputs, stdin)
 	}
 
-	stdout, _ := output.New(output.StdoutOutput, cfg)
+	outputs := make([]output.Output, 0)
+	for i := 0; i < len(cfg.Outputs); i++ {
+		temp, err := output.New(cfg.Outputs[i].Type, cfg, cfg.Outputs[i])
+		handleError(cfg.Log, err)
+
+		err = temp.Open()
+		handleError(cfg.Log, err)
+
+		outputs = append(outputs, temp)
+	}
+
+	if len(outputs) == 0 {
+		stdout, _ := output.New(output.StdoutOutput, cfg, nil)
+		outputs = append(outputs, stdout)
+	}
 
 	for i := 0; i < cfg.NumWorkers; i++ {
-		workers[i] = worker.New(cfg, inputs, filters, []output.Output{stdout})
+		workers[i] = worker.New(cfg, inputs, filters, outputs)
 		workers[i].Start()
 	}
 

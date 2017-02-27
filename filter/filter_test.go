@@ -70,7 +70,7 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, cfg)
+	javascript, err := New(JavascriptFilter, cfg, config)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -112,7 +112,7 @@ func TestJavascriptImproperTypeReturn(t *testing.T) {
 			event = "testing"
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, cfg)
+	javascript, err := New(JavascriptFilter, cfg, config)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -143,7 +143,7 @@ func TestJavascriptImproperScript(t *testing.T) {
 			}, 100)
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, cfg)
+	javascript, err := New(JavascriptFilter, cfg, config)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -178,7 +178,7 @@ func TestJavascriptInterrupt(t *testing.T) {
 			}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, badCfg)
+	javascript, err := New(JavascriptFilter, badCfg, config)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}

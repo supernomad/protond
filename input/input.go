@@ -33,7 +33,7 @@ type Input interface {
 }
 
 // New generates an input plugin based on the passed in plugin and user defined configuration.
-func New(inputPlugin string, inOutCfg *common.InOutConfig, cfg *common.Config) (Input, error) {
+func New(inputPlugin string, cfg *common.Config, inOutCfg *common.InOutConfig) (Input, error) {
 	switch inputPlugin {
 	case StdinInput:
 		return newStdin(cfg)
