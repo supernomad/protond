@@ -89,7 +89,7 @@ func TestJavascript(t *testing.T) {
 
 	test, err := javascript.Run(event)
 	if err != nil {
-		t.Fatalf("Error occured: %s", err.Error())
+		t.Fatalf("Error occurred: %s", err.Error())
 	}
 
 	if test.Data["message"] != "testing" {
@@ -192,7 +192,7 @@ func TestJavascriptInterrupt(t *testing.T) {
 
 	test, err := javascript.Run(event)
 	if err == nil {
-		t.Fatal("javascript filter improperly handled an interupt.")
+		t.Fatal("javascript filter improperly handled an interrupt.")
 	}
 	if test == nil || test.Timestamp != event.Timestamp || test.Data["message"] != event.Data["message"] {
 		t.Fatal("javascript filter improperly set event value on failure, should be the unchanged supplied event object.")

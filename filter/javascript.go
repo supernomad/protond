@@ -19,7 +19,7 @@ type Javascript struct {
 	filterCfg *common.FilterConfig
 }
 
-func interupt(js *Javascript, vm *otto.Otto) {
+func interrupt(js *Javascript, vm *otto.Otto) {
 	time.Sleep(js.cfg.FilterTimeout)
 	vm.Interrupt <- func() {
 		panic(errHalt)
@@ -40,7 +40,7 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 	vm := otto.New()
 
 	vm.Interrupt = make(chan func(), 1)
-	go interupt(js, vm)
+	go interrupt(js, vm)
 
 	vm.Set("event", event.Data)
 
