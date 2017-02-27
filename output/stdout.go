@@ -50,9 +50,19 @@ func (stdout *Stdout) Close() error {
 
 func newStdout(cfg *common.Config) (Output, error) {
 	stdout := &Stdout{
-		cfg:    cfg,
-		name:   "Stdout",
-		writer: bufio.NewWriter(os.Stdout),
+		cfg:  cfg,
+		name: "Stdout",
+	}
+
+	if tmpFile := os.Getenv("_TESTING_PROTOND"); tmpFile != "" {
+		file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_RDWR, os.ModeAppend)
+		if err != nil {
+			return nil, err
+		}
+
+		stdout.writer = bufio.NewWriter(file)
+	} else {
+		stdout.writer = bufio.NewWriter(os.Stdout)
 	}
 
 	return stdout, nil
