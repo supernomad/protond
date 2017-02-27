@@ -19,25 +19,28 @@ type Javascript struct {
 	filterCfg *common.FilterConfig
 }
 
+func interupt(js *Javascript, vm *otto.Otto) {
+	time.Sleep(js.cfg.FilterTimeout)
+	vm.Interrupt <- func() {
+		panic(errHalt)
+	}
+}
+
 // Run will return a parsed object based on the configured javascript filter.
 func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
-	defer func(js *Javascript, event *common.Event) {
+	defer func() {
+		// Handle an interrupt to the javascript vm running the filter.
 		if caught := recover(); caught != nil {
 			ret = event
 			err = errors.New("filter '" + js.filterCfg.Name + "' paniced with '" + caught.(error).Error() + "' while parsing event: " + event.String(false))
 		}
 		return
-	}(js, event)
+	}()
 
 	vm := otto.New()
-	vm.Interrupt = make(chan func(), 1)
 
-	go func(js *Javascript, vm *otto.Otto) {
-		time.Sleep(js.cfg.FilterTimeout)
-		vm.Interrupt <- func() {
-			panic(errHalt)
-		}
-	}(js, vm)
+	vm.Interrupt = make(chan func(), 1)
+	go interupt(js, vm)
 
 	vm.Set("event", event.Data)
 
