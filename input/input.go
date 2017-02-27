@@ -10,6 +10,9 @@ import (
 )
 
 const (
+	// NoopInput defines a no operation input plugin for testing.
+	NoopInput = "noop"
+
 	// StdinInput defines an input plugin that takes data from stdin.
 	StdinInput = "stdin"
 
@@ -35,6 +38,8 @@ type Input interface {
 // New generates an input plugin based on the passed in plugin and user defined configuration.
 func New(inputPlugin string, cfg *common.Config, inOutCfg *common.InOutConfig) (Input, error) {
 	switch inputPlugin {
+	case NoopInput:
+		return newNoop(cfg)
 	case StdinInput:
 		return newStdin(cfg)
 	case TCPInput:

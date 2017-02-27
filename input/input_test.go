@@ -24,6 +24,37 @@ func TestNonExistentInputPlugin(t *testing.T) {
 	}
 }
 
+func TestNoop(t *testing.T) {
+	noop, err := New(NoopInput, nil, nil)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	name := noop.Name()
+	if name != "Noop" {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	test, err := noop.Next()
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	if test == nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	err = noop.Open()
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	err = noop.Close()
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+}
+
 func TestStdin(t *testing.T) {
 	file, _ := ioutil.TempFile(os.TempDir(), "stdin")
 	defer os.Remove(file.Name())
