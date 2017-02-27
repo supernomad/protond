@@ -6,7 +6,6 @@ package output
 import (
 	"bufio"
 	"errors"
-	"io"
 	"net"
 	"time"
 
@@ -26,6 +25,9 @@ handle:
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
 		tcp.cfg.Log.Error.Printf("[TCP] New tcp connection to %s:%s could not be established: %s", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"], err.Error())
+
+		time.Sleep(10 * time.Second)
+		goto handle
 	}
 
 	tcp.cfg.Log.Debug.Printf("[TCP] New tcp connection to %s:%s established.", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"])
@@ -33,15 +35,15 @@ handle:
 	tcp.conn = conn
 	tcp.writer = bufio.NewWriter(conn)
 
-	zero := make([]byte, 0)
+	one := make([]byte, 1)
 	for {
-		tcp.conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
-		if _, err := tcp.conn.Read(zero); err == io.EOF {
+		if _, err := tcp.conn.Read(one); err != nil {
 			tcp.conn.Close()
 
 			tcp.conn = nil
 			tcp.writer = nil
 
+			tcp.cfg.Log.Debug.Printf("[TCP] tcp connection to %s:%s terminated: %s", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"], err.Error())
 			time.Sleep(10 * time.Second)
 			goto handle
 		}
@@ -49,7 +51,15 @@ handle:
 }
 
 // Send will push the supplied event to the connected tcp server.
-func (tcp *TCP) Send(event *common.Event) error {
+func (tcp *TCP) Send(event *common.Event) (err error) {
+	defer func() {
+		// Handle an interrupt to the javascript vm running the filter.
+		if caught := recover(); caught != nil {
+			err = errors.New("tcp connection to remote server is down")
+		}
+		return
+	}()
+
 	str := event.String(false)
 
 	n, err := tcp.writer.WriteString(str + "\n")
@@ -82,6 +92,10 @@ func (tcp *TCP) Open() error {
 
 // Close will close the TCP plugin.
 func (tcp *TCP) Close() error {
+	if tcp.conn == nil {
+		return nil
+	}
+
 	err := tcp.conn.Close()
 	if err != nil {
 		return err
