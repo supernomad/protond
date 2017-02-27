@@ -5,10 +5,13 @@ package filter
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Supernomad/protond/common"
 	"github.com/robertkrimen/otto"
 )
+
+var errHalt = errors.New("filter timed out")
 
 // Javascript is a struct representing the javascript filter plugin.
 type Javascript struct {
@@ -17,8 +20,24 @@ type Javascript struct {
 }
 
 // Run will return a parsed object based on the configured javascript filter.
-func (js *Javascript) Run(event *common.Event) (*common.Event, error) {
+func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
+	defer func(js *Javascript, event *common.Event) {
+		if caught := recover(); caught != nil {
+			ret = event
+			err = errors.New("filter '" + js.filterCfg.Name + "' paniced with '" + caught.(error).Error() + "' while parsing event: " + event.String(false))
+		}
+		return
+	}(js, event)
+
 	vm := otto.New()
+	vm.Interrupt = make(chan func(), 1)
+
+	go func(js *Javascript, vm *otto.Otto) {
+		time.Sleep(js.cfg.FilterTimeout)
+		vm.Interrupt <- func() {
+			panic(errHalt)
+		}
+	}(js, vm)
 
 	vm.Set("event", event.Data)
 

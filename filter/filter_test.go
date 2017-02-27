@@ -10,6 +10,19 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
+var (
+	cfg    *common.Config
+	badCfg *common.Config
+)
+
+func init() {
+	filterTimeout, _ := time.ParseDuration("10s")
+	badTimeout, _ := time.ParseDuration("1ns")
+	log := common.NewLogger(common.NoopLogger)
+	cfg = &common.Config{FilterTimeout: filterTimeout, Log: log}
+	badCfg = &common.Config{FilterTimeout: badTimeout, Log: log}
+}
+
 func TestNonExistentFilterPlugin(t *testing.T) {
 	nonExistent, err := New("doesn't exist", nil, nil)
 	if err == nil {
@@ -57,7 +70,7 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, nil)
+	javascript, err := New(JavascriptFilter, config, cfg)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -99,7 +112,7 @@ func TestJavascriptImproperTypeReturn(t *testing.T) {
 			event = "testing"
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, nil)
+	javascript, err := New(JavascriptFilter, config, cfg)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -130,7 +143,7 @@ func TestJavascriptImproperScript(t *testing.T) {
 			}, 100)
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, nil)
+	javascript, err := New(JavascriptFilter, config, cfg)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -145,6 +158,41 @@ func TestJavascriptImproperScript(t *testing.T) {
 	test, err := javascript.Run(event)
 	if err == nil {
 		t.Fatal("javascript filter improperly handled a return line in the filter.")
+	}
+	if test == nil || test.Timestamp != event.Timestamp || test.Data["message"] != event.Data["message"] {
+		t.Fatal("javascript filter improperly set event value on failure, should be the unchanged supplied event object.")
+	}
+}
+
+func TestJavascriptInterrupt(t *testing.T) {
+	config := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			function square(a) {
+				return a * a
+			}
+
+			event.value = 1
+			while(true) {
+				event.value = square(event.value)
+			}
+		`,
+	}
+	javascript, err := New(JavascriptFilter, config, badCfg)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": 101010101,
+		},
+	}
+
+	test, err := javascript.Run(event)
+	if err == nil {
+		t.Fatal("javascript filter improperly handled an interupt.")
 	}
 	if test == nil || test.Timestamp != event.Timestamp || test.Data["message"] != event.Data["message"] {
 		t.Fatal("javascript filter improperly set event value on failure, should be the unchanged supplied event object.")
