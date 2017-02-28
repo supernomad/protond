@@ -30,6 +30,7 @@ func (w *Worker) input(input int) {
 	for {
 		select {
 		case <-w.stopReading:
+			close(w.incoming)
 			return
 		default:
 			event, err := w.inputs[input].Next()
@@ -78,6 +79,7 @@ func (w *Worker) output() {
 			}
 		case <-w.stopWriting:
 			close(w.stopWriting)
+			close(w.outgoing)
 			return
 		}
 	}
@@ -112,9 +114,6 @@ func (w *Worker) Stop() error {
 			return err
 		}
 	}
-
-	close(w.incoming)
-	close(w.outgoing)
 
 	return nil
 }
