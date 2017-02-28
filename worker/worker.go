@@ -62,6 +62,7 @@ func (w *Worker) filter() {
 			}
 		case <-w.stopFiltering:
 			close(w.stopFiltering)
+			close(w.outgoing)
 			return
 		}
 	}
@@ -79,7 +80,6 @@ func (w *Worker) output() {
 			}
 		case <-w.stopWriting:
 			close(w.stopWriting)
-			close(w.outgoing)
 			return
 		}
 	}
