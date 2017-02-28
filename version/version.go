@@ -8,3 +8,8 @@ const (
 	// VERSION is the current version of the protond application
 	VERSION = "0.1.0"
 )
+
+// GetVersion returns the current version of the protond application
+func GetVersion() string {
+	return VERSION
+}
