@@ -14,23 +14,23 @@ import (
 
 // TCP is a struct representing the standard input plugin.
 type TCP struct {
-	cfg         *common.Config
-	inOutConfig *common.InOutConfig
-	conn        *net.TCPConn
-	writer      *bufio.Writer
+	cfg          *common.Config
+	pluginConfig *common.PluginConfig
+	conn         *net.TCPConn
+	writer       *bufio.Writer
 }
 
 func (tcp *TCP) handleConn(addr *net.TCPAddr) {
 handle:
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
-		tcp.cfg.Log.Error.Printf("[TCP] New tcp connection to %s:%s could not be established: %s", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"], err.Error())
+		tcp.cfg.Log.Error.Printf("[TCP] New tcp connection to %s:%s could not be established: %s", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"], err.Error())
 
 		time.Sleep(10 * time.Second)
 		goto handle
 	}
 
-	tcp.cfg.Log.Debug.Printf("[TCP] New tcp connection to %s:%s established.", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"])
+	tcp.cfg.Log.Debug.Printf("[TCP] New tcp connection to %s:%s established.", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"])
 
 	tcp.conn = conn
 	tcp.writer = bufio.NewWriter(conn)
@@ -43,7 +43,7 @@ handle:
 			tcp.conn = nil
 			tcp.writer = nil
 
-			tcp.cfg.Log.Debug.Printf("[TCP] tcp connection to %s:%s terminated: %s", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"], err.Error())
+			tcp.cfg.Log.Debug.Printf("[TCP] tcp connection to %s:%s terminated: %s", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"], err.Error())
 			time.Sleep(10 * time.Second)
 			goto handle
 		}
@@ -75,12 +75,12 @@ func (tcp *TCP) Send(event *common.Event) (err error) {
 
 // Name returns 'TCP'.
 func (tcp *TCP) Name() string {
-	return tcp.inOutConfig.Name
+	return tcp.pluginConfig.Name
 }
 
 // Open will open the TCP plugin.
 func (tcp *TCP) Open() error {
-	addr, err := net.ResolveTCPAddr("tcp", tcp.inOutConfig.Config["host"]+":"+tcp.inOutConfig.Config["port"])
+	addr, err := net.ResolveTCPAddr("tcp", tcp.pluginConfig.Config["host"]+":"+tcp.pluginConfig.Config["port"])
 	if err != nil {
 		return err
 	}
@@ -104,17 +104,17 @@ func (tcp *TCP) Close() error {
 	return nil
 }
 
-func newTCP(cfg *common.Config, inOutConfig *common.InOutConfig) (Output, error) {
+func newTCP(cfg *common.Config, pluginConfig *common.PluginConfig) (Output, error) {
 	tcp := &TCP{
-		cfg:         cfg,
-		inOutConfig: inOutConfig,
+		cfg:          cfg,
+		pluginConfig: pluginConfig,
 	}
 
-	if tcp.inOutConfig.Config["host"] == "" {
+	if tcp.pluginConfig.Config["host"] == "" {
 		return nil, errors.New("configuration for the tcp input plugin is missing a host definition")
 	}
 
-	if tcp.inOutConfig.Config["port"] == "" {
+	if tcp.pluginConfig.Config["port"] == "" {
 		return nil, errors.New("configuration for the tcp input plugin is missing a port definition")
 	}
 

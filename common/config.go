@@ -46,8 +46,8 @@ type Config struct {
 	DataDir         string            `skip:"false"  type:"string"    short:"d"    long:"data-dir"          default:"/var/lib/protond"              description:"The directory to store local protond state to."`
 	PidFile         string            `skip:"false"  type:"string"    short:"p"    long:"pid-file"          default:"/var/run/protond/protond.pid"  description:"The pid file to use for tracking rolling restarts."`
 	Log             *Logger           `skip:"true"` // The internal logger to use
-	Inputs          []*InOutConfig    `skip:"true"` // The raw input configurations to use for event ingestion
-	Outputs         []*InOutConfig    `skip:"true"` // The raw input configurations to use for event propagation
+	Inputs          []*PluginConfig   `skip:"true"` // The raw input configurations to use for event ingestion
+	Outputs         []*PluginConfig   `skip:"true"` // The raw input configurations to use for event propagation
 	Filters         []*FilterConfig   `skip:"true"` // The raw javascript filters to use during event filtering
 	fileData        map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
 }
@@ -276,13 +276,13 @@ func (cfg *Config) computeArgs() error {
 		cfg.Log.Warn.Println("The specified FilterDirectory path does not exist, using Noop filter.")
 	}
 
-	inputConfigs, err := ParseInOutConfigs(cfg.InputDirectory, cfg.Log)
+	inputConfigs, err := ParsePluginConfigs(cfg.InputDirectory, cfg.Log)
 	if err != nil {
 		return err
 	}
 	cfg.Inputs = inputConfigs
 
-	outputConfigs, err := ParseInOutConfigs(cfg.OutputDirectory, cfg.Log)
+	outputConfigs, err := ParsePluginConfigs(cfg.OutputDirectory, cfg.Log)
 	if err != nil {
 		return err
 	}

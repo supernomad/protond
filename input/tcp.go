@@ -14,10 +14,10 @@ import (
 
 // TCP is a struct representing the standard input plugin.
 type TCP struct {
-	cfg         *common.Config
-	inOutConfig *common.InOutConfig
-	messages    chan string
-	listener    *net.TCPListener
+	cfg          *common.Config
+	pluginConfig *common.PluginConfig
+	messages     chan string
+	listener     *net.TCPListener
 }
 
 func (tcp *TCP) accept() {
@@ -55,7 +55,7 @@ func (tcp *TCP) Next() (*common.Event, error) {
 
 	event := &common.Event{
 		Timestamp: time.Now(),
-		Input:     tcp.inOutConfig.Name,
+		Input:     tcp.pluginConfig.Name,
 		Data: map[string]interface{}{
 			"message": text[:len(text)-1],
 		},
@@ -66,12 +66,12 @@ func (tcp *TCP) Next() (*common.Event, error) {
 
 // Name returns 'TCP'.
 func (tcp *TCP) Name() string {
-	return tcp.inOutConfig.Name
+	return tcp.pluginConfig.Name
 }
 
 // Open will open the TCP plugin.
 func (tcp *TCP) Open() error {
-	addr, err := net.ResolveTCPAddr("tcp", tcp.inOutConfig.Config["host"]+":"+tcp.inOutConfig.Config["port"])
+	addr, err := net.ResolveTCPAddr("tcp", tcp.pluginConfig.Config["host"]+":"+tcp.pluginConfig.Config["port"])
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (tcp *TCP) Open() error {
 		return err
 	}
 
-	tcp.cfg.Log.Debug.Printf("[TCP] New tcp listener created on %s:%s.", tcp.inOutConfig.Config["host"], tcp.inOutConfig.Config["port"])
+	tcp.cfg.Log.Debug.Printf("[TCP] New tcp listener created on %s:%s.", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"])
 	tcp.listener = l
 
 	go tcp.accept()
@@ -99,14 +99,14 @@ func (tcp *TCP) Close() error {
 	return nil
 }
 
-func newTCP(cfg *common.Config, inOutConfig *common.InOutConfig) (Input, error) {
+func newTCP(cfg *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
 	tcp := &TCP{
-		cfg:         cfg,
-		inOutConfig: inOutConfig,
-		messages:    make(chan string, cfg.Backlog),
+		cfg:          cfg,
+		pluginConfig: pluginConfig,
+		messages:     make(chan string, cfg.Backlog),
 	}
 
-	if tcp.inOutConfig.Config["port"] == "" {
+	if tcp.pluginConfig.Config["port"] == "" {
 		return nil, errors.New("configuration for the tcp input plugin is missing a port definition")
 	}
 

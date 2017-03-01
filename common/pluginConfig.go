@@ -11,16 +11,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// InOutConfig is a struct representing a input plugin configuration.
-type InOutConfig struct {
+// PluginConfig is a struct representing a input plugin configuration.
+type PluginConfig struct {
 	Type   string            `json:"type" yaml:"type"`
 	Name   string            `json:"name" yaml:"name"`
 	Config map[string]string `json:"config" yaml:"config"`
 }
 
-// ParseInOutConfigs parses a directory of files and returns the resulting array of configs.
-func ParseInOutConfigs(dir string, log *Logger) ([]*InOutConfig, error) {
-	configs := make([]*InOutConfig, 0)
+// ParsePluginConfigs parses a directory of files and returns the resulting array of configs.
+func ParsePluginConfigs(dir string, log *Logger) ([]*PluginConfig, error) {
+	configs := make([]*PluginConfig, 0)
 	if PathExists(dir) {
 		inputFiles, err := ioutil.ReadDir(dir)
 		if err != nil {
@@ -31,7 +31,7 @@ func ParseInOutConfigs(dir string, log *Logger) ([]*InOutConfig, error) {
 			name := inputFiles[i].Name()
 			ext := path.Ext(name)
 
-			var cfg InOutConfig
+			var cfg PluginConfig
 			switch ext {
 			case ".yml", ".yaml":
 				fileData, err := ioutil.ReadFile(path.Join(dir, name))
