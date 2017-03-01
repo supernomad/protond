@@ -13,17 +13,20 @@ const (
 	// NoopCache defines a cache that stores nothing and returns a hardcoded event or set of events.
 	NoopCache = "noop"
 
-	// LruCache defines an in memory least recently used cache.
-	LruCache = "lru"
+	// MemoryCache defines an in memory cache.
+	MemoryCache = "memory"
 )
 
 // Cache is the interface that plugins must adhere to for operation as a cache plugin.
 type Cache interface {
-	// Get should return a list of events associated with the given key, if there is an error during processing the list should be nil.
+	// Get should return a list of events associated with the given key, if there is an error during processing the list should be empty.
 	Get(key string) []*common.Event
 
 	// Store should add an event to an existing list of events or create a new one.
 	Store(key string, event *common.Event)
+
+	// Name returns the name of the cache plugin.
+	Name() string
 }
 
 // New generates a cache plugin based on the passed in plugin and user defined configuration.
@@ -31,6 +34,8 @@ func New(cachePlugin string, cfg *common.Config, pluginConfig *common.PluginConf
 	switch cachePlugin {
 	case NoopCache:
 		return newNoop(cfg)
+	case MemoryCache:
+		return newMemory(cfg, pluginConfig)
 	}
 	return nil, errors.New("specified cache plugin does not exist")
 }
