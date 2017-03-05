@@ -38,6 +38,7 @@ func (h *HTTP) handleResponseError(err error) {
 }
 
 func (h *HTTP) handleRequestError(w http.ResponseWriter, requestError error) {
+	h.setHeaders(w)
 	body := response{
 		Message: "Error handling request, POSTed data must be a json blob.",
 		Error:   requestError.Error(),
@@ -51,6 +52,7 @@ func (h *HTTP) handleRequestError(w http.ResponseWriter, requestError error) {
 }
 
 func (h *HTTP) handleSuccess(w http.ResponseWriter) {
+	h.setHeaders(w)
 	body := response{
 		Message: "event received",
 	}
