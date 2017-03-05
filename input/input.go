@@ -18,6 +18,9 @@ const (
 
 	// TCPInput defines an input plugin that takes data from a tcp socket.
 	TCPInput = "tcp"
+
+	// HTTPInput defins an input plugin that taks json data being posted from http clients, which can run with or without TLS.
+	HTTPInput = "http"
 )
 
 // Input is the interface that plugins must adhere to for operation as an input plugin.
@@ -36,14 +39,16 @@ type Input interface {
 }
 
 // New generates an input plugin based on the passed in plugin and user defined configuration.
-func New(inputPlugin string, cfg *common.Config, inOutCfg *common.PluginConfig) (Input, error) {
+func New(inputPlugin string, cfg *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
 	switch inputPlugin {
 	case NoopInput:
 		return newNoop(cfg)
 	case StdinInput:
 		return newStdin(cfg)
 	case TCPInput:
-		return newTCP(cfg, inOutCfg)
+		return newTCP(cfg, pluginConfig)
+	case HTTPInput:
+		return newHTTP(cfg, pluginConfig)
 	}
 	return nil, errors.New("specified input plugin does not exist")
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/Supernomad/protond/common"
 )
 
-// TCP is a struct representing the standard input plugin.
+// TCP is a struct representing the tcp input plugin.
 type TCP struct {
 	cfg          *common.Config
 	pluginConfig *common.PluginConfig
@@ -49,7 +49,7 @@ func (tcp *TCP) handleConn(conn *net.TCPConn) {
 	}
 }
 
-// Next will return the next event from standard input.
+// Next will return the next event from the internal event buffer.
 func (tcp *TCP) Next() (*common.Event, error) {
 	text := <-tcp.messages
 

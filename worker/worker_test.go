@@ -38,4 +38,6 @@ func TestWorker(t *testing.T) {
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
+
+	time.Sleep(1 * time.Second)
 }

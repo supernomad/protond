@@ -5,8 +5,11 @@ package input
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -139,6 +142,54 @@ func TestTCP(t *testing.T) {
 	}
 
 	err = tcp.Close()
+	if err != nil {
+		t.Fatal("Something is wrong close wasn't handled properly.")
+	}
+}
+
+func TestHttp(t *testing.T) {
+	h, err := New(HTTPInput, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)}, &common.PluginConfig{Name: "Testing Http", Type: "http", Config: map[string]string{"host": "localhost"}})
+	if err == nil || h != nil {
+		t.Fatal("http plugin did not throw an error when configured without a port definition.")
+	}
+
+	h, err = New(HTTPInput, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)}, &common.PluginConfig{Name: "Testing Http", Type: "http", Config: map[string]string{"host": "localhost", "port": "9093"}})
+	if err != nil {
+		t.Fatal("http plugin did not throw an error when configured without a port definition.")
+	}
+	h.Open()
+
+	time.Sleep(1 * time.Second)
+	postData := map[string]string{
+		"message": "test",
+	}
+
+	buf, _ := json.Marshal(postData)
+	resp, err := http.Post("http://localhost:9093", "application/json", bytes.NewBuffer(buf))
+	if err != nil || resp == nil || resp.StatusCode != 200 {
+		t.Fatal("Something is wrong sent data wasn't handled properly.")
+	}
+
+	test, err := h.Next()
+	if err != nil || test == nil {
+		t.Fatal("Something is wrong couldn't retrieve sent data.")
+	}
+
+	if test.Data["message"] != "test" {
+		t.Fatal("Something is wrong http plugin improperlly parsed event.")
+	}
+
+	resp, err = http.Post("http://localhost:9093", "text/plain", bytes.NewBuffer([]byte("testing string handling")))
+	if err != nil || resp == nil || resp.StatusCode == 200 {
+		t.Fatal("Something is wrong sent data wasn't handled properly.")
+	}
+
+	name := h.Name()
+	if name != "Testing Http" {
+		t.Fatal("Something is wrong name wasn't handled properly.")
+	}
+
+	err = h.Close()
 	if err != nil {
 		t.Fatal("Something is wrong close wasn't handled properly.")
 	}

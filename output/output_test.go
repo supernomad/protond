@@ -138,4 +138,5 @@ func TestTCP(t *testing.T) {
 	if err != nil {
 		t.Fatal("Something is wrong close wasn't handled properly.")
 	}
+	time.Sleep(1 * time.Second)
 }

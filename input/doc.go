@@ -9,5 +9,7 @@ Protond currently implements the following input plugins:
     - An input plugin that reads from stdin and is used for testing filters and other pieces of functionality of protond.
   - TCP
     - This plugin allows listening on an arbitrary tcp socket, and reads new line terminated strings from the connected clients.
+  - Http
+  	- This plugin aloows listening as an http server, and reads json blobs from connected clients POSTing events to it.
 */
 package input
