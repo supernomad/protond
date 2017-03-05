@@ -36,14 +36,14 @@ type Output interface {
 }
 
 // New generates an output plugin based on the passed in plugin and user defined configuration.
-func New(outputPlugin string, cfg *common.Config, pluginConfig *common.PluginConfig) (Output, error) {
+func New(outputPlugin string, config *common.Config, pluginConfig *common.PluginConfig) (Output, error) {
 	switch outputPlugin {
 	case NoopOutput:
-		return newNoop(cfg)
+		return newNoop(config)
 	case StdoutOutput:
-		return newStdout(cfg)
+		return newStdout(config)
 	case TCPOutput:
-		return newTCP(cfg, pluginConfig)
+		return newTCP(config, pluginConfig)
 	}
 	return nil, errors.New("specified output plugin does not exist")
 }

@@ -15,12 +15,12 @@ var errHalt = errors.New("filter timed out")
 
 // Javascript is a struct representing the javascript filter plugin.
 type Javascript struct {
-	cfg       *common.Config
+	config    *common.Config
 	filterCfg *common.FilterConfig
 }
 
 func interrupt(js *Javascript, vm *otto.Otto) {
-	time.Sleep(js.cfg.FilterTimeout)
+	time.Sleep(js.config.FilterTimeout)
 	vm.Interrupt <- func() {
 		panic(errHalt)
 	}
@@ -65,9 +65,9 @@ func (js *Javascript) Name() string {
 	return js.filterCfg.Name
 }
 
-func newJavascript(cfg *common.Config, filterCfg *common.FilterConfig) (Filter, error) {
+func newJavascript(config *common.Config, filterCfg *common.FilterConfig) (Filter, error) {
 	js := &Javascript{
-		cfg:       cfg,
+		config:    config,
 		filterCfg: filterCfg,
 	}
 

@@ -13,7 +13,7 @@ import (
 
 // Stdout is a struct representing the standard output plugin.
 type Stdout struct {
-	cfg    *common.Config
+	config *common.Config
 	name   string
 	writer *bufio.Writer
 }
@@ -48,10 +48,10 @@ func (stdout *Stdout) Close() error {
 	return nil
 }
 
-func newStdout(cfg *common.Config) (Output, error) {
+func newStdout(config *common.Config) (Output, error) {
 	stdout := &Stdout{
-		cfg:  cfg,
-		name: "Stdout",
+		config: config,
+		name:   "Stdout",
 	}
 
 	if tmpFile := os.Getenv("_TESTING_PROTOND"); tmpFile != "" {

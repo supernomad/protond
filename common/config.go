@@ -52,7 +52,7 @@ type Config struct {
 	fileData        map[string]string `skip:"true"` // An internal map of data representing a passed in configuration file
 }
 
-func (cfg *Config) cliArg(short, long string, isFlag bool) (string, bool) {
+func (config *Config) cliArg(short, long string, isFlag bool) (string, bool) {
 	for i, arg := range os.Args {
 		if arg == "-"+short ||
 			arg == "--"+long {
@@ -65,7 +65,7 @@ func (cfg *Config) cliArg(short, long string, isFlag bool) (string, bool) {
 	return "", false
 }
 
-func (cfg *Config) envArg(long string) (string, bool) {
+func (config *Config) envArg(long string) (string, bool) {
 	env := envPrefix + strings.ToUpper(strings.Replace(long, "-", "_", 10))
 	output := os.Getenv(env)
 	if output == "" {
@@ -74,28 +74,28 @@ func (cfg *Config) envArg(long string) (string, bool) {
 	return output, true
 }
 
-func (cfg *Config) fileArg(long string) (string, bool) {
-	if cfg.fileData == nil {
+func (config *Config) fileArg(long string) (string, bool) {
+	if config.fileData == nil {
 		return "", false
 	}
-	value, ok := cfg.fileData[long]
+	value, ok := config.fileData[long]
 	return value, ok
 }
 
-func (cfg *Config) usage(exit bool) {
-	cfg.Log.Plain.Println("Usage of protond:")
-	st := reflect.TypeOf(*cfg)
+func (config *Config) usage(exit bool) {
+	config.Log.Plain.Println("Usage of protond:")
+	st := reflect.TypeOf(*config)
 
 	numFields := st.NumField()
 	for i := 0; i < numFields; i++ {
 		field := st.Field(i)
-		skip, fieldType, short, long, def, description := cfg.parseField(field.Tag)
+		skip, fieldType, short, long, def, description := config.parseField(field.Tag)
 		if skip == "true" {
 			continue
 		}
 
-		cfg.Log.Plain.Printf("\t-%s|--%s  (%s)\n", short, long, fieldType)
-		cfg.Log.Plain.Printf("\t\t%s (default: '%s')\n", description, def)
+		config.Log.Plain.Printf("\t-%s|--%s  (%s)\n", short, long, fieldType)
+		config.Log.Plain.Printf("\t\t%s (default: '%s')\n", description, def)
 	}
 
 	if exit {
@@ -103,27 +103,27 @@ func (cfg *Config) usage(exit bool) {
 	}
 }
 
-func (cfg *Config) version(exit bool) {
-	cfg.Log.Plain.Printf("protond: v%s\n", version.VERSION)
+func (config *Config) version(exit bool) {
+	config.Log.Plain.Printf("protond: v%s\n", version.VERSION)
 
 	if exit {
 		os.Exit(0)
 	}
 }
 
-func (cfg *Config) parseFile() error {
-	if cfg.ConfFile != "" {
-		if !PathExists(cfg.ConfFile) {
+func (config *Config) parseFile() error {
+	if config.ConfFile != "" {
+		if !PathExists(config.ConfFile) {
 			return errors.New("the supplied configuration file does not exist")
 		}
 
-		buf, err := ioutil.ReadFile(cfg.ConfFile)
+		buf, err := ioutil.ReadFile(config.ConfFile)
 		if err != nil {
 			return err
 		}
 
 		data := make(map[string]string)
-		ext := path.Ext(cfg.ConfFile)
+		ext := path.Ext(config.ConfFile)
 		switch {
 		case ".json" == ext:
 			err = json.Unmarshal(buf, &data)
@@ -137,12 +137,12 @@ func (cfg *Config) parseFile() error {
 			return err
 		}
 
-		cfg.fileData = data
+		config.fileData = data
 	}
 	return nil
 }
 
-func (cfg *Config) parseField(tag reflect.StructTag) (skip, fieldType, short, long, def, description string) {
+func (config *Config) parseField(tag reflect.StructTag) (skip, fieldType, short, long, def, description string) {
 	skip = tag.Get("skip")
 	fieldType = tag.Get("type")
 	short = tag.Get("short")
@@ -152,37 +152,37 @@ func (cfg *Config) parseField(tag reflect.StructTag) (skip, fieldType, short, lo
 	return
 }
 
-func (cfg *Config) parseSpecial(args []string, exit bool) {
+func (config *Config) parseSpecial(args []string, exit bool) {
 	for _, arg := range args {
 		switch {
 		case arg == "-h" || arg == "--help":
-			cfg.usage(exit)
+			config.usage(exit)
 		case arg == "-v" || arg == "--version":
-			cfg.version(exit)
+			config.version(exit)
 		}
 	}
 }
 
-func (cfg *Config) parseArgs() error {
-	st := reflect.TypeOf(*cfg)
-	sv := reflect.ValueOf(cfg).Elem()
+func (config *Config) parseArgs() error {
+	st := reflect.TypeOf(*config)
+	sv := reflect.ValueOf(config).Elem()
 
 	numFields := st.NumField()
 	for i := 0; i < numFields; i++ {
 		field := st.Field(i)
 		fieldValue := sv.Field(i)
-		skip, fieldType, short, long, def, _ := cfg.parseField(field.Tag)
+		skip, fieldType, short, long, def, _ := config.parseField(field.Tag)
 
 		if skip == "true" || !fieldValue.CanSet() {
 			continue
 		}
 
 		var raw string
-		if value, ok := cfg.cliArg(short, long, fieldType == "bool"); ok {
+		if value, ok := config.cliArg(short, long, fieldType == "bool"); ok {
 			raw = value
-		} else if value, ok := cfg.envArg(long); ok {
+		} else if value, ok := config.envArg(long); ok {
 			raw = value
-		} else if value, ok := cfg.fileArg(long); ok {
+		} else if value, ok := config.fileArg(long); ok {
 			raw = value
 		} else {
 			raw = def
@@ -223,41 +223,41 @@ func (cfg *Config) parseArgs() error {
 		}
 
 		if field.Name == "ConfFile" {
-			cfg.parseFile()
+			config.parseFile()
 		}
 	}
 
 	return nil
 }
 
-func (cfg *Config) computeArgs() error {
-	if numCPU := runtime.NumCPU(); cfg.NumWorkers == 0 || cfg.NumWorkers > numCPU {
-		cfg.NumWorkers = numCPU
+func (config *Config) computeArgs() error {
+	if numCPU := runtime.NumCPU(); config.NumWorkers == 0 || config.NumWorkers > numCPU {
+		config.NumWorkers = numCPU
 	}
 
-	os.MkdirAll(cfg.DataDir, os.ModeDir)
-	os.MkdirAll(path.Dir(cfg.PidFile), os.ModeDir)
+	os.MkdirAll(config.DataDir, os.ModeDir)
+	os.MkdirAll(path.Dir(config.PidFile), os.ModeDir)
 
 	pid := os.Getpid()
 
-	err := ioutil.WriteFile(cfg.PidFile, []byte(strconv.Itoa(pid)), os.ModePerm)
+	err := ioutil.WriteFile(config.PidFile, []byte(strconv.Itoa(pid)), os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	if PathExists(cfg.FilterDirectory) {
-		filterFiles, err := ioutil.ReadDir(cfg.FilterDirectory)
+	if PathExists(config.FilterDirectory) {
+		filterFiles, err := ioutil.ReadDir(config.FilterDirectory)
 		if err != nil {
 			return err
 		}
 
-		cfg.Filters = make([]*FilterConfig, 0)
+		config.Filters = make([]*FilterConfig, 0)
 		for i := 0; i < len(filterFiles); i++ {
 			name := filterFiles[i].Name()
 			ext := path.Ext(name)
 			switch ext {
 			case ".js":
-				fileData, err := ioutil.ReadFile(path.Join(cfg.FilterDirectory, name))
+				fileData, err := ioutil.ReadFile(path.Join(config.FilterDirectory, name))
 				if err != nil {
 					return err
 				}
@@ -267,48 +267,48 @@ func (cfg *Config) computeArgs() error {
 					Name: name,
 					Code: string(fileData),
 				}
-				cfg.Filters = append(cfg.Filters, filterCfg)
+				config.Filters = append(config.Filters, filterCfg)
 			default:
-				cfg.Log.Warn.Printf("Filter file '%s' is not one of the compatible filter types: 'js'.", name)
+				config.Log.Warn.Printf("Filter file '%s' is not one of the compatible filter types: 'js'.", name)
 			}
 		}
 	} else {
-		cfg.Log.Warn.Println("The specified FilterDirectory path does not exist, using Noop filter.")
+		config.Log.Warn.Println("The specified FilterDirectory path does not exist, using Noop filter.")
 	}
 
-	inputConfigs, err := ParsePluginConfigs(cfg.InputDirectory, cfg.Log)
+	inputConfigs, err := ParsePluginConfigs(config.InputDirectory, config.Log)
 	if err != nil {
 		return err
 	}
-	cfg.Inputs = inputConfigs
+	config.Inputs = inputConfigs
 
-	outputConfigs, err := ParsePluginConfigs(cfg.OutputDirectory, cfg.Log)
+	outputConfigs, err := ParsePluginConfigs(config.OutputDirectory, config.Log)
 	if err != nil {
 		return err
 	}
-	cfg.Outputs = outputConfigs
+	config.Outputs = outputConfigs
 
 	return nil
 }
 
 // NewConfig creates a new Config struct based on user supplied input.
 func NewConfig(log *Logger) (*Config, error) {
-	cfg := &Config{
+	config := &Config{
 		Log: log,
 	}
 
 	// Handle the help and version commands if the exist
-	cfg.parseSpecial(os.Args, true)
+	config.parseSpecial(os.Args, true)
 
 	// Handle parsing user supplied configuration data
-	if err := cfg.parseArgs(); err != nil {
+	if err := config.parseArgs(); err != nil {
 		return nil, err
 	}
 
 	// Compute internal configuration based on the user supplied configuration data
-	if err := cfg.computeArgs(); err != nil {
+	if err := config.computeArgs(); err != nil {
 		return nil, err
 	}
 
-	return cfg, nil
+	return config, nil
 }

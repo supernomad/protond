@@ -39,16 +39,16 @@ type Input interface {
 }
 
 // New generates an input plugin based on the passed in plugin and user defined configuration.
-func New(inputPlugin string, cfg *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
+func New(inputPlugin string, config *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
 	switch inputPlugin {
 	case NoopInput:
-		return newNoop(cfg)
+		return newNoop(config)
 	case StdinInput:
-		return newStdin(cfg)
+		return newStdin(config)
 	case TCPInput:
-		return newTCP(cfg, pluginConfig)
+		return newTCP(config, pluginConfig)
 	case HTTPInput:
-		return newHTTP(cfg, pluginConfig)
+		return newHTTP(config, pluginConfig)
 	}
 	return nil, errors.New("specified input plugin does not exist")
 }

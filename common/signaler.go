@@ -14,8 +14,8 @@ import (
 
 // Signaler struct used to manage os and user signals to the protond process.
 type Signaler struct {
-	log *Logger
-	cfg *Config
+	log    *Logger
+	config *Config
 
 	fds     []int
 	env     map[string]string
@@ -50,7 +50,7 @@ func (sig *Signaler) reload(exec bool) error {
 		return errors.New("error execing new instance of protond during reload: " + err.Error())
 	}
 
-	err = ioutil.WriteFile(sig.cfg.PidFile, []byte(strconv.Itoa(pid)), 0644)
+	err = ioutil.WriteFile(sig.config.PidFile, []byte(strconv.Itoa(pid)), 0644)
 	if err != nil {
 		return errors.New("error the new pid for the new instance of protond during reload: " + err.Error())
 	}
@@ -76,13 +76,13 @@ func (sig *Signaler) Wait(exec bool) error {
 }
 
 // NewSignaler generates a new Signaler object, which will watch for new os and user signals passed to the protond process.
-func NewSignaler(log *Logger, cfg *Config, fds []int, env map[string]string) *Signaler {
+func NewSignaler(log *Logger, config *Config, fds []int, env map[string]string) *Signaler {
 	signals := make(chan os.Signal)
 	signal.Notify(signals, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	return &Signaler{
 		log:     log,
-		cfg:     cfg,
+		config:  config,
 		fds:     fds,
 		env:     env,
 		signals: signals,

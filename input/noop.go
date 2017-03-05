@@ -11,8 +11,8 @@ import (
 
 // Noop is a struct representing the noop plugin.
 type Noop struct {
-	cfg  *common.Config
-	name string
+	config *common.Config
+	name   string
 }
 
 // Next will return the noop event.
@@ -42,10 +42,10 @@ func (noop *Noop) Close() error {
 	return nil
 }
 
-func newNoop(cfg *common.Config) (Input, error) {
+func newNoop(config *common.Config) (Input, error) {
 	noop := &Noop{
-		cfg:  cfg,
-		name: "Noop",
+		config: config,
+		name:   "Noop",
 	}
 	return noop, nil
 }

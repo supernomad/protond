@@ -31,7 +31,7 @@ func ParsePluginConfigs(dir string, log *Logger) ([]*PluginConfig, error) {
 			name := inputFiles[i].Name()
 			ext := path.Ext(name)
 
-			var cfg PluginConfig
+			var config PluginConfig
 			switch ext {
 			case ".yml", ".yaml":
 				fileData, err := ioutil.ReadFile(path.Join(dir, name))
@@ -39,7 +39,7 @@ func ParsePluginConfigs(dir string, log *Logger) ([]*PluginConfig, error) {
 					return nil, err
 				}
 
-				err = yaml.Unmarshal(fileData, &cfg)
+				err = yaml.Unmarshal(fileData, &config)
 				if err != nil {
 					return nil, err
 				}
@@ -49,7 +49,7 @@ func ParsePluginConfigs(dir string, log *Logger) ([]*PluginConfig, error) {
 					return nil, err
 				}
 
-				err = json.Unmarshal(fileData, &cfg)
+				err = json.Unmarshal(fileData, &config)
 				if err != nil {
 					return nil, err
 				}
@@ -58,7 +58,7 @@ func ParsePluginConfigs(dir string, log *Logger) ([]*PluginConfig, error) {
 				continue
 			}
 
-			configs = append(configs, &cfg)
+			configs = append(configs, &config)
 		}
 	} else {
 		log.Warn.Printf("The specified directory '%s' does not exist.", dir)

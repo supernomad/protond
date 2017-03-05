@@ -9,7 +9,7 @@ import (
 
 // Memory is a struct representing the standard input plugin.
 type Memory struct {
-	cfg          *common.Config
+	config       *common.Config
 	pluginConfig *common.PluginConfig
 	events       map[string][]*common.Event
 }
@@ -33,9 +33,9 @@ func (memory *Memory) Name() string {
 	return memory.pluginConfig.Name
 }
 
-func newMemory(cfg *common.Config, pluginConfig *common.PluginConfig) (Cache, error) {
+func newMemory(config *common.Config, pluginConfig *common.PluginConfig) (Cache, error) {
 	memory := &Memory{
-		cfg:          cfg,
+		config:       config,
 		pluginConfig: pluginConfig,
 		events:       make(map[string][]*common.Event),
 	}

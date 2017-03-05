@@ -29,25 +29,25 @@ func TestNewConfig(t *testing.T) {
 	os.Setenv("PROTOND_PID_FILE", "../protond.pid")
 
 	os.Args = append(os.Args, "-w", "100", "-f", "../dist/test/filters.d")
-	cfg, err := NewConfig(NewLogger(NoopLogger))
+	config, err := NewConfig(NewLogger(NoopLogger))
 
 	if err != nil {
 		t.Fatalf("NewConfig returned an error, %s", err)
 	}
-	if cfg == nil {
+	if config == nil {
 		t.Fatal("NewConfig returned a blank config")
 	}
-	if cfg.NumWorkers != runtime.NumCPU() {
+	if config.NumWorkers != runtime.NumCPU() {
 		t.Fatal("NewConfig didn't pick up the cli replacement for NumWorkers")
 	}
-	if cfg.DataDir != "/var/lib/testing-protond" {
+	if config.DataDir != "/var/lib/testing-protond" {
 		t.Fatal("NewConfig didn't pick up the config file replacement for DataDir")
 	}
-	if cfg.PidFile != "../protond.pid" {
+	if config.PidFile != "../protond.pid" {
 		t.Fatal("NewConfig didn't pick up the environment variable replacement for PidFile")
 	}
 
-	cfg.parseSpecial([]string{"-h", "-v"}, false)
+	config.parseSpecial([]string{"-h", "-v"}, false)
 }
 
 func TestNewLogger(t *testing.T) {
@@ -68,8 +68,8 @@ func TestNewLogger(t *testing.T) {
 
 func TestSignaler(t *testing.T) {
 	log := NewLogger(NoopLogger)
-	cfg, err := NewConfig(log)
-	signaler := NewSignaler(log, cfg, []int{1}, map[string]string{"PROTOND_TESTING": "woot"})
+	config, err := NewConfig(log)
+	signaler := NewSignaler(log, config, []int{1}, map[string]string{"PROTOND_TESTING": "woot"})
 
 	go func() {
 		time.Sleep(1 * time.Second)

@@ -11,24 +11,24 @@ import (
 )
 
 func TestWorker(t *testing.T) {
-	cfg := &common.Config{Log: common.NewLogger(common.NoopLogger), Backlog: 1024}
+	config := &common.Config{Log: common.NewLogger(common.NoopLogger), Backlog: 1024}
 
-	in, err := input.New(input.NoopInput, cfg, nil)
+	in, err := input.New(input.NoopInput, config, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
 
-	filt, err := filter.New(filter.NoopFilter, cfg, nil)
+	filt, err := filter.New(filter.NoopFilter, config, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
 
-	out, err := output.New(output.NoopOutput, cfg, nil)
+	out, err := output.New(output.NoopOutput, config, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
 
-	worker := New(cfg, []input.Input{in}, []filter.Filter{filt}, []output.Output{out})
+	worker := New(config, []input.Input{in}, []filter.Filter{filt}, []output.Output{out})
 
 	worker.Start()
 

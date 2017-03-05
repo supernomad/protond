@@ -28,69 +28,69 @@ func main() {
 
 	log := common.NewLogger(logger)
 
-	cfg, err := common.NewConfig(log)
-	handleError(cfg.Log, err)
+	config, err := common.NewConfig(log)
+	handleError(config.Log, err)
 
-	workers := make([]*worker.Worker, cfg.NumWorkers)
+	workers := make([]*worker.Worker, config.NumWorkers)
 
 	filters := make([]filter.Filter, 0)
-	for i := 0; i < len(cfg.Filters); i++ {
-		temp, err := filter.New(cfg.Filters[i].Type, cfg, cfg.Filters[i])
-		handleError(cfg.Log, err)
+	for i := 0; i < len(config.Filters); i++ {
+		temp, err := filter.New(config.Filters[i].Type, config, config.Filters[i])
+		handleError(config.Log, err)
 
 		filters = append(filters, temp)
 	}
 
 	if len(filters) == 0 {
-		noop, _ := filter.New(filter.NoopFilter, cfg, nil)
+		noop, _ := filter.New(filter.NoopFilter, config, nil)
 		filters = append(filters, noop)
 	}
 
 	inputs := make([]input.Input, 0)
-	for i := 0; i < len(cfg.Inputs); i++ {
-		temp, err := input.New(cfg.Inputs[i].Type, cfg, cfg.Inputs[i])
-		handleError(cfg.Log, err)
+	for i := 0; i < len(config.Inputs); i++ {
+		temp, err := input.New(config.Inputs[i].Type, config, config.Inputs[i])
+		handleError(config.Log, err)
 
 		err = temp.Open()
-		handleError(cfg.Log, err)
+		handleError(config.Log, err)
 
 		inputs = append(inputs, temp)
 	}
 
 	if len(inputs) == 0 {
-		stdin, _ := input.New(input.StdinInput, cfg, nil)
+		stdin, _ := input.New(input.StdinInput, config, nil)
 		inputs = append(inputs, stdin)
 	}
 
 	outputs := make([]output.Output, 0)
-	for i := 0; i < len(cfg.Outputs); i++ {
-		temp, err := output.New(cfg.Outputs[i].Type, cfg, cfg.Outputs[i])
-		handleError(cfg.Log, err)
+	for i := 0; i < len(config.Outputs); i++ {
+		temp, err := output.New(config.Outputs[i].Type, config, config.Outputs[i])
+		handleError(config.Log, err)
 
 		err = temp.Open()
-		handleError(cfg.Log, err)
+		handleError(config.Log, err)
 
 		outputs = append(outputs, temp)
 	}
 
 	if len(outputs) == 0 {
-		stdout, _ := output.New(output.StdoutOutput, cfg, nil)
+		stdout, _ := output.New(output.StdoutOutput, config, nil)
 		outputs = append(outputs, stdout)
 	}
 
-	for i := 0; i < cfg.NumWorkers; i++ {
-		workers[i] = worker.New(cfg, inputs, filters, outputs)
+	for i := 0; i < config.NumWorkers; i++ {
+		workers[i] = worker.New(config, inputs, filters, outputs)
 		workers[i].Start()
 	}
 
-	signaler := common.NewSignaler(log, cfg, nil, map[string]string{})
+	signaler := common.NewSignaler(log, config, nil, map[string]string{})
 
 	log.Info.Println("[MAIN]", "protond start up complete.")
 
 	err = signaler.Wait(true)
-	handleError(cfg.Log, err)
+	handleError(config.Log, err)
 
-	for i := 0; i < cfg.NumWorkers; i++ {
+	for i := 0; i < config.NumWorkers; i++ {
 		workers[i].Stop()
 	}
 }

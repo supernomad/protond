@@ -9,7 +9,7 @@ import (
 
 // Noop is a struct representing the standard input plugin.
 type Noop struct {
-	cfg    *common.Config
+	config *common.Config
 	name   string
 	events []*common.Event
 }
@@ -29,9 +29,9 @@ func (noop *Noop) Name() string {
 	return noop.name
 }
 
-func newNoop(cfg *common.Config) (Cache, error) {
+func newNoop(config *common.Config) (Cache, error) {
 	noop := &Noop{
-		cfg:    cfg,
+		config: config,
 		name:   "Noop",
 		events: make([]*common.Event, 0),
 	}

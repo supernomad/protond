@@ -12,7 +12,7 @@ import (
 
 // Worker represents an individual protond worker.
 type Worker struct {
-	cfg *common.Config
+	config *common.Config
 
 	incoming chan *common.Event
 	outgoing chan *common.Event
@@ -35,7 +35,7 @@ func (w *Worker) input(input int) {
 		default:
 			event, err := w.inputs[input].Next()
 			if err != nil {
-				w.cfg.Log.Error.Printf("errored getting next event from input '%s'\nerror: %s", w.inputs[input].Name(), err.Error())
+				w.config.Log.Error.Printf("errored getting next event from input '%s'\nerror: %s", w.inputs[input].Name(), err.Error())
 			} else {
 				w.incoming <- event
 			}
@@ -52,7 +52,7 @@ func (w *Worker) filter() {
 			for i := 0; i < len(w.filters); i++ {
 				event, err = w.filters[i].Run(event)
 				if err != nil {
-					w.cfg.Log.Error.Printf("errored running filter '%s' on event: %s\nerror: %s", w.filters[i].Name(), event.String(false), err.Error())
+					w.config.Log.Error.Printf("errored running filter '%s' on event: %s\nerror: %s", w.filters[i].Name(), event.String(false), err.Error())
 					break
 				}
 			}
@@ -75,7 +75,7 @@ func (w *Worker) output() {
 			for i := 0; i < len(w.outputs); i++ {
 				err := w.outputs[i].Send(event)
 				if err != nil {
-					w.cfg.Log.Error.Printf("errored sending to output '%s' on event: %s\nerror: %s", w.outputs[i].Name(), event.String(false), err.Error())
+					w.config.Log.Error.Printf("errored sending to output '%s' on event: %s\nerror: %s", w.outputs[i].Name(), event.String(false), err.Error())
 				}
 			}
 		case <-w.stopWriting:
@@ -119,14 +119,14 @@ func (w *Worker) Stop() error {
 }
 
 // New returns a worker object that is fully configured and ready to be started.
-func New(cfg *common.Config, inputs []input.Input, filters []filter.Filter, outputs []output.Output) *Worker {
+func New(config *common.Config, inputs []input.Input, filters []filter.Filter, outputs []output.Output) *Worker {
 	return &Worker{
-		cfg:           cfg,
+		config:        config,
 		inputs:        inputs,
 		filters:       filters,
 		outputs:       outputs,
-		incoming:      make(chan *common.Event, cfg.Backlog),
-		outgoing:      make(chan *common.Event, cfg.Backlog),
+		incoming:      make(chan *common.Event, config.Backlog),
+		outgoing:      make(chan *common.Event, config.Backlog),
 		stopReading:   make(chan struct{}, len(inputs)),
 		stopFiltering: make(chan struct{}, 1),
 		stopWriting:   make(chan struct{}, 1),

@@ -9,8 +9,8 @@ import (
 
 // Noop is a struct representing the standard input plugin.
 type Noop struct {
-	cfg  *common.Config
-	name string
+	config *common.Config
+	name   string
 }
 
 // Run will return the event unchanged.
@@ -23,10 +23,10 @@ func (noop *Noop) Name() string {
 	return noop.name
 }
 
-func newNoop(cfg *common.Config) (Filter, error) {
+func newNoop(config *common.Config) (Filter, error) {
 	noop := &Noop{
-		cfg:  cfg,
-		name: "Noop",
+		config: config,
+		name:   "Noop",
 	}
 
 	return noop, nil

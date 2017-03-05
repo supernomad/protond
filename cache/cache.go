@@ -30,12 +30,12 @@ type Cache interface {
 }
 
 // New generates a cache plugin based on the passed in plugin and user defined configuration.
-func New(cachePlugin string, cfg *common.Config, pluginConfig *common.PluginConfig) (Cache, error) {
+func New(cachePlugin string, config *common.Config, pluginConfig *common.PluginConfig) (Cache, error) {
 	switch cachePlugin {
 	case NoopCache:
-		return newNoop(cfg)
+		return newNoop(config)
 	case MemoryCache:
-		return newMemory(cfg, pluginConfig)
+		return newMemory(config, pluginConfig)
 	}
 	return nil, errors.New("specified cache plugin does not exist")
 }

@@ -14,7 +14,7 @@ import (
 
 // TCP is a struct representing the tcp input plugin.
 type TCP struct {
-	cfg          *common.Config
+	config       *common.Config
 	pluginConfig *common.PluginConfig
 	messages     chan string
 	listener     *net.TCPListener
@@ -24,11 +24,11 @@ func (tcp *TCP) accept() {
 	for {
 		conn, err := tcp.listener.AcceptTCP()
 		if err != nil {
-			tcp.cfg.Log.Error.Println("[TCP]", "Error accepting new connections with the tcp plugin.")
+			tcp.config.Log.Error.Println("[TCP]", "Error accepting new connections with the tcp plugin.")
 			break
 		}
 
-		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp connection received.")
+		tcp.config.Log.Debug.Println("[TCP]", "New tcp connection received.")
 		go tcp.handleConn(conn)
 	}
 }
@@ -40,11 +40,11 @@ func (tcp *TCP) handleConn(conn *net.TCPConn) {
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
-			tcp.cfg.Log.Debug.Println("[TCP]", "Error reading from connection with the tcp plugin, considering connection dead and moving on.")
+			tcp.config.Log.Debug.Println("[TCP]", "Error reading from connection with the tcp plugin, considering connection dead and moving on.")
 			break
 		}
 
-		tcp.cfg.Log.Debug.Println("[TCP]", "New tcp message received.")
+		tcp.config.Log.Debug.Println("[TCP]", "New tcp message received.")
 		tcp.messages <- message
 	}
 }
@@ -81,7 +81,7 @@ func (tcp *TCP) Open() error {
 		return err
 	}
 
-	tcp.cfg.Log.Debug.Printf("[TCP] New tcp listener created on %s:%s.", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"])
+	tcp.config.Log.Debug.Printf("[TCP] New tcp listener created on %s:%s.", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"])
 	tcp.listener = l
 
 	go tcp.accept()
@@ -99,11 +99,11 @@ func (tcp *TCP) Close() error {
 	return nil
 }
 
-func newTCP(cfg *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
+func newTCP(config *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
 	tcp := &TCP{
-		cfg:          cfg,
+		config:       config,
 		pluginConfig: pluginConfig,
-		messages:     make(chan string, cfg.Backlog),
+		messages:     make(chan string, config.Backlog),
 	}
 
 	if tcp.pluginConfig.Config["port"] == "" {

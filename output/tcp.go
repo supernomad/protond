@@ -14,7 +14,7 @@ import (
 
 // TCP is a struct representing the standard input plugin.
 type TCP struct {
-	cfg          *common.Config
+	config       *common.Config
 	pluginConfig *common.PluginConfig
 	conn         *net.TCPConn
 	writer       *bufio.Writer
@@ -24,13 +24,13 @@ func (tcp *TCP) handleConn(addr *net.TCPAddr) {
 handle:
 	conn, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
-		tcp.cfg.Log.Error.Printf("[TCP] New tcp connection to %s:%s could not be established: %s", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"], err.Error())
+		tcp.config.Log.Error.Printf("[TCP] New tcp connection to %s:%s could not be established: %s", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"], err.Error())
 
 		time.Sleep(10 * time.Second)
 		goto handle
 	}
 
-	tcp.cfg.Log.Debug.Printf("[TCP] New tcp connection to %s:%s established.", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"])
+	tcp.config.Log.Debug.Printf("[TCP] New tcp connection to %s:%s established.", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"])
 
 	tcp.conn = conn
 	tcp.writer = bufio.NewWriter(conn)
@@ -43,7 +43,7 @@ handle:
 			tcp.conn = nil
 			tcp.writer = nil
 
-			tcp.cfg.Log.Debug.Printf("[TCP] tcp connection to %s:%s terminated: %s", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"], err.Error())
+			tcp.config.Log.Debug.Printf("[TCP] tcp connection to %s:%s terminated: %s", tcp.pluginConfig.Config["host"], tcp.pluginConfig.Config["port"], err.Error())
 			time.Sleep(10 * time.Second)
 			goto handle
 		}
@@ -104,9 +104,9 @@ func (tcp *TCP) Close() error {
 	return nil
 }
 
-func newTCP(cfg *common.Config, pluginConfig *common.PluginConfig) (Output, error) {
+func newTCP(config *common.Config, pluginConfig *common.PluginConfig) (Output, error) {
 	tcp := &TCP{
-		cfg:          cfg,
+		config:       config,
 		pluginConfig: pluginConfig,
 	}
 

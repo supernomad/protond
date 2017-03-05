@@ -13,7 +13,7 @@ import (
 
 // Stdin is a struct representing the standard input plugin.
 type Stdin struct {
-	cfg    *common.Config
+	config *common.Config
 	name   string
 	reader *bufio.Reader
 }
@@ -51,10 +51,10 @@ func (stdin *Stdin) Close() error {
 	return nil
 }
 
-func newStdin(cfg *common.Config) (Input, error) {
+func newStdin(config *common.Config) (Input, error) {
 	stdin := &Stdin{
-		cfg:  cfg,
-		name: "Stdin",
+		config: config,
+		name:   "Stdin",
 	}
 
 	if tmpFile := os.Getenv("_TESTING_PROTOND"); tmpFile != "" {

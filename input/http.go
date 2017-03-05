@@ -15,7 +15,7 @@ import (
 
 // HTTP is a struct representing the http input plugin.
 type HTTP struct {
-	cfg          *common.Config
+	config       *common.Config
 	pluginConfig *common.PluginConfig
 	messages     chan map[string]interface{}
 }
@@ -33,7 +33,7 @@ func (h *HTTP) setHeaders(w http.ResponseWriter) {
 
 func (h *HTTP) handleResponseError(err error) {
 	if err != nil {
-		h.cfg.Log.Error.Println("[INPUT]", "[HTTP]", "Error sending response to client:", err.Error())
+		h.config.Log.Error.Println("[INPUT]", "[HTTP]", "Error sending response to client:", err.Error())
 	}
 }
 
@@ -86,7 +86,7 @@ func (h *HTTP) server() {
 	for {
 		err := http.ListenAndServe(h.pluginConfig.Config["host"]+":"+h.pluginConfig.Config["port"], nil)
 		if err != nil {
-			h.cfg.Log.Error.Println("[INPUT]", "[HTTP]", "Error initializing event api:", err.Error())
+			h.config.Log.Error.Println("[INPUT]", "[HTTP]", "Error initializing event api:", err.Error())
 		}
 
 		time.Sleep(10 * time.Second)
@@ -122,11 +122,11 @@ func (h *HTTP) Close() error {
 	return nil
 }
 
-func newHTTP(cfg *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
+func newHTTP(config *common.Config, pluginConfig *common.PluginConfig) (Input, error) {
 	h := &HTTP{
-		cfg:          cfg,
+		config:       config,
 		pluginConfig: pluginConfig,
-		messages:     make(chan map[string]interface{}, cfg.Backlog),
+		messages:     make(chan map[string]interface{}, config.Backlog),
 	}
 
 	if h.pluginConfig.Config["port"] == "" {
@@ -134,7 +134,7 @@ func newHTTP(cfg *common.Config, pluginConfig *common.PluginConfig) (Input, erro
 	}
 
 	if h.pluginConfig.Config["route"] == "" {
-		h.cfg.Log.Warn.Println("[INPUT]", "[HTTP]", "No route definition for the http input plugin, '"+h.pluginConfig.Name+"', using default route '/'.")
+		h.config.Log.Warn.Println("[INPUT]", "[HTTP]", "No route definition for the http input plugin, '"+h.pluginConfig.Name+"', using default route '/'.")
 		h.pluginConfig.Config["route"] = "/"
 	}
 

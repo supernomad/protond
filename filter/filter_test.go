@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	cfg    *common.Config
+	config *common.Config
 	badCfg *common.Config
 )
 
@@ -19,7 +19,7 @@ func init() {
 	filterTimeout, _ := time.ParseDuration("10s")
 	badTimeout, _ := time.ParseDuration("1ns")
 	log := common.NewLogger(common.NoopLogger)
-	cfg = &common.Config{FilterTimeout: filterTimeout, Log: log}
+	config = &common.Config{FilterTimeout: filterTimeout, Log: log}
 	badCfg = &common.Config{FilterTimeout: badTimeout, Log: log}
 }
 
@@ -61,7 +61,7 @@ func TestNoop(t *testing.T) {
 }
 
 func TestJavascript(t *testing.T) {
-	config := &common.FilterConfig{
+	filterConfig := &common.FilterConfig{
 		Name: "Test Filter",
 		Code: `
 			event.message = "testing"
@@ -70,7 +70,7 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, cfg, config)
+	javascript, err := New(JavascriptFilter, config, filterConfig)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -106,13 +106,13 @@ func TestJavascript(t *testing.T) {
 }
 
 func TestJavascriptImproperTypeReturn(t *testing.T) {
-	config := &common.FilterConfig{
+	filterConfig := &common.FilterConfig{
 		Name: "Test Filter",
 		Code: `
 			event = "testing"
 		`,
 	}
-	javascript, err := New(JavascriptFilter, cfg, config)
+	javascript, err := New(JavascriptFilter, config, filterConfig)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -134,7 +134,7 @@ func TestJavascriptImproperTypeReturn(t *testing.T) {
 }
 
 func TestJavascriptImproperScript(t *testing.T) {
-	config := &common.FilterConfig{
+	filterConfig := &common.FilterConfig{
 		Name: "Test Filter",
 		Code: `
 			event = "testing"
@@ -143,7 +143,7 @@ func TestJavascriptImproperScript(t *testing.T) {
 			}, 100)
 		`,
 	}
-	javascript, err := New(JavascriptFilter, cfg, config)
+	javascript, err := New(JavascriptFilter, config, filterConfig)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -165,7 +165,7 @@ func TestJavascriptImproperScript(t *testing.T) {
 }
 
 func TestJavascriptInterrupt(t *testing.T) {
-	config := &common.FilterConfig{
+	filterConfig := &common.FilterConfig{
 		Name: "Test Filter",
 		Code: `
 			function square(a) {
@@ -178,7 +178,7 @@ func TestJavascriptInterrupt(t *testing.T) {
 			}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, badCfg, config)
+	javascript, err := New(JavascriptFilter, badCfg, filterConfig)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
