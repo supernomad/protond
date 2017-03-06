@@ -6,6 +6,7 @@ package main
 import (
 	"os"
 
+	"github.com/Supernomad/protond/cache"
 	"github.com/Supernomad/protond/common"
 	"github.com/Supernomad/protond/filter"
 	"github.com/Supernomad/protond/input"
@@ -31,18 +32,21 @@ func main() {
 	config, err := common.NewConfig(log)
 	handleError(config.Log, err)
 
+	internalCache, err := cache.New(cache.MemoryCache, config, &common.PluginConfig{Name: "memory"})
+	handleError(config.Log, err)
+
 	workers := make([]*worker.Worker, config.NumWorkers)
 
 	filters := make([]filter.Filter, 0)
 	for i := 0; i < len(config.Filters); i++ {
-		temp, err := filter.New(config.Filters[i].Type, config, config.Filters[i])
+		temp, err := filter.New(config.Filters[i].Type, config, config.Filters[i], internalCache)
 		handleError(config.Log, err)
 
 		filters = append(filters, temp)
 	}
 
 	if len(filters) == 0 {
-		noop, _ := filter.New(filter.NoopFilter, config, nil)
+		noop, _ := filter.New(filter.NoopFilter, config, nil, nil)
 		filters = append(filters, noop)
 	}
 

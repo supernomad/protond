@@ -7,12 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Supernomad/protond/cache"
 	"github.com/Supernomad/protond/common"
 )
 
 var (
-	config *common.Config
-	badCfg *common.Config
+	config        *common.Config
+	badCfg        *common.Config
+	internalCache cache.Cache
 )
 
 func init() {
@@ -21,10 +23,11 @@ func init() {
 	log := common.NewLogger(common.NoopLogger)
 	config = &common.Config{FilterTimeout: filterTimeout, Log: log}
 	badCfg = &common.Config{FilterTimeout: badTimeout, Log: log}
+	internalCache, _ = cache.New(cache.MemoryCache, config, &common.PluginConfig{Name: "memory"})
 }
 
 func TestNonExistentFilterPlugin(t *testing.T) {
-	nonExistent, err := New("doesn't exist", nil, nil)
+	nonExistent, err := New("doesn't exist", nil, nil, nil)
 	if err == nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -34,7 +37,7 @@ func TestNonExistentFilterPlugin(t *testing.T) {
 }
 
 func TestNoop(t *testing.T) {
-	noop, err := New(NoopFilter, nil, nil)
+	noop, err := New(NoopFilter, nil, nil, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -70,7 +73,7 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -105,6 +108,200 @@ func TestJavascript(t *testing.T) {
 	}
 }
 
+func TestJavascriptAlert(t *testing.T) {
+	filterConfig := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			event.message = "testing"
+			event.added_field = "woot"
+			event.new_array = ["this", "should", "be", "handled", 1, 2, 3]
+			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
+			alert.emit("Noop", event, {this: "is", extra:["parameters", "that"], are:"sent", to:1, the:2, alert:3, sink:4})
+		`,
+	}
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": 101010101,
+		},
+	}
+
+	_, err = javascript.Run(event)
+	if err != nil {
+		t.Fatalf("Something is very very wrong. %s", err.Error())
+	}
+}
+
+func TestJavascriptInternalCache(t *testing.T) {
+	filterConfig := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			event.message = "testing"
+			event.added_field = "woot"
+			event.new_array = ["this", "should", "be", "handled", 1, 2, 3]
+			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
+			cache.store("testing", event)
+		`,
+	}
+
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": "woot",
+		},
+	}
+
+	_, err = javascript.Run(event)
+	if err != nil {
+		t.Fatalf("Something is very very wrong. %s", err.Error())
+	}
+
+	test := javascript.(*Javascript).internalCache.Get("testing")
+	if test == nil || len(test) != 1 || test[0].Data["message"] != "testing" {
+		t.Fatal("internal cache was not properly updated")
+	}
+}
+
+func TestJavascriptInternalCacheGet(t *testing.T) {
+	filterConfig := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			events = cache.get("testing")
+			if(events.length == 1) {
+				event.stored_events = 1
+			}
+		`,
+	}
+
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": "woot",
+		},
+	}
+
+	test, err := javascript.Run(event)
+	if err != nil {
+		t.Fatalf("Something is very very wrong. %s", err.Error())
+	}
+
+	if test == nil || test.Data["stored_events"].(float64) != 1 {
+		t.Fatal("event was not properly updated based on cached events")
+	}
+}
+
+func TestJavascriptInternalCacheObjectKeyGet(t *testing.T) {
+	filterConfig := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			events = cache.get({this:"should fail"})
+			if(events.length != 0) {
+				event.failed = true
+			} else {
+				event.failed = false
+			}
+		`,
+	}
+
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": "woot",
+		},
+	}
+
+	test, err := javascript.Run(event)
+	if err != nil {
+		t.Fatalf("Something is very very wrong. %s", err.Error())
+	}
+
+	if test == nil || test.Data["failed"].(bool) != false {
+		t.Fatal("event was not properly updated based on cached events")
+	}
+}
+
+func TestJavascriptInternalCacheObjectKeyStore(t *testing.T) {
+	filterConfig := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			cache.store({this:"should fail"}, event)
+		`,
+	}
+
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": "woot",
+		},
+	}
+
+	_, err = javascript.Run(event)
+	if err != nil {
+		t.Fatalf("Something is very very wrong. %s", err.Error())
+	}
+
+	test := javascript.(*Javascript).internalCache.Get("testing")
+	if test == nil || len(test) != 1 {
+		t.Fatal("internal cache was not properly updated")
+	}
+}
+
+func TestJavascriptInternalCacheStringValueStore(t *testing.T) {
+	filterConfig := &common.FilterConfig{
+		Name: "Test Filter",
+		Code: `
+			cache.store("testing", "this should fail")
+		`,
+	}
+
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	if err != nil {
+		t.Fatal("Something is very very wrong.")
+	}
+
+	event := &common.Event{
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"message": "woot",
+		},
+	}
+
+	_, err = javascript.Run(event)
+	if err != nil {
+		t.Fatalf("Something is very very wrong. %s", err.Error())
+	}
+
+	test := javascript.(*Javascript).internalCache.Get("testing")
+	if test == nil || len(test) != 1 {
+		t.Fatal("internal cache was not properly updated")
+	}
+}
+
 func TestJavascriptImproperTypeReturn(t *testing.T) {
 	filterConfig := &common.FilterConfig{
 		Name: "Test Filter",
@@ -112,7 +309,7 @@ func TestJavascriptImproperTypeReturn(t *testing.T) {
 			event = "testing"
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -143,7 +340,7 @@ func TestJavascriptImproperScript(t *testing.T) {
 			}, 100)
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -178,7 +375,7 @@ func TestJavascriptInterrupt(t *testing.T) {
 			}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, badCfg, filterConfig)
+	javascript, err := New(JavascriptFilter, badCfg, filterConfig, internalCache)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}

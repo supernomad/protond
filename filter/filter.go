@@ -6,6 +6,7 @@ package filter
 import (
 	"errors"
 
+	"github.com/Supernomad/protond/cache"
 	"github.com/Supernomad/protond/common"
 )
 
@@ -27,12 +28,12 @@ type Filter interface {
 }
 
 // New generates a filter plugin based on the passed in plugin and user defined configuration.
-func New(filterPlugin string, config *common.Config, filterConfig *common.FilterConfig) (Filter, error) {
+func New(filterPlugin string, config *common.Config, filterConfig *common.FilterConfig, internalCache cache.Cache) (Filter, error) {
 	switch filterPlugin {
 	case NoopFilter:
 		return newNoop(config)
 	case JavascriptFilter:
-		return newJavascript(config, filterConfig)
+		return newJavascript(config, filterConfig, internalCache)
 	}
 	return nil, errors.New("specified filter plugin does not exist")
 }

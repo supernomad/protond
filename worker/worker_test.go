@@ -18,7 +18,7 @@ func TestWorker(t *testing.T) {
 		t.Fatal("Something is very very wrong.")
 	}
 
-	filt, err := filter.New(filter.NoopFilter, config, nil)
+	filt, err := filter.New(filter.NoopFilter, config, nil, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
