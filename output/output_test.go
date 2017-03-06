@@ -100,8 +100,6 @@ func TestTCP(t *testing.T) {
 	if err != nil {
 		t.Fatalf("setting up input tcp plugin threw an error for no reason: %s", err.Error())
 	}
-	inputTCP.Open()
-
 	time.Sleep(1 * time.Second)
 
 	tcp, err = New(TCPOutput, &common.Config{Backlog: 1024, Log: common.NewLogger(common.NoopLogger)}, &common.PluginConfig{Name: "Testing TCP", Type: "tcp", Config: map[string]string{"host": "127.0.0.1", "port": "9091"}})
@@ -111,6 +109,10 @@ func TestTCP(t *testing.T) {
 	tcp.Open()
 
 	time.Sleep(1 * time.Second)
+
+	inputTCP.Open()
+
+	time.Sleep(10 * time.Second)
 
 	event := &common.Event{
 		Timestamp: time.Now(),

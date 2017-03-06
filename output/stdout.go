@@ -5,7 +5,6 @@ package output
 
 import (
 	"bufio"
-	"errors"
 	"os"
 
 	"github.com/Supernomad/protond/common"
@@ -23,11 +22,8 @@ func (stdout *Stdout) Send(event *common.Event) error {
 	str := event.String(true)
 
 	n, err := stdout.writer.WriteString(str + "\n")
-	if err != nil {
+	if err != nil || len(str)+1 != n {
 		return err
-	}
-	if len(str)+1 != n {
-		return errors.New("failed writing the entire event to standard out")
 	}
 
 	return stdout.writer.Flush()
@@ -55,10 +51,7 @@ func newStdout(config *common.Config) (Output, error) {
 	}
 
 	if tmpFile := os.Getenv("_TESTING_PROTOND"); tmpFile != "" {
-		file, err := os.OpenFile(tmpFile, os.O_APPEND|os.O_RDWR, os.ModeAppend)
-		if err != nil {
-			return nil, err
-		}
+		file, _ := os.OpenFile(tmpFile, os.O_APPEND|os.O_RDWR, os.ModeAppend)
 
 		stdout.writer = bufio.NewWriter(file)
 	} else {
