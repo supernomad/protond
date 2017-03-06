@@ -58,10 +58,7 @@ func newStdin(config *common.Config) (Input, error) {
 	}
 
 	if tmpFile := os.Getenv("_TESTING_PROTOND"); tmpFile != "" {
-		file, err := os.Open(tmpFile)
-		if err != nil {
-			return nil, err
-		}
+		file, _ := os.Open(tmpFile)
 
 		stdin.reader = bufio.NewReader(file)
 	} else {

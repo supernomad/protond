@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"net"
 	"os"
 	"path"
 	"reflect"
@@ -201,21 +200,6 @@ func (config *Config) parseArgs() error {
 				return errors.New("error parsing value for '" + long + "' got, '" + raw + "', expected a 'duration' for example: '10s' or '2d'")
 			}
 			fieldValue.Set(reflect.ValueOf(dur))
-		case "ip":
-			ip := net.ParseIP(raw)
-			if ip == nil && raw != "" {
-				return errors.New("error parsing value for '" + long + "' got, '" + raw + "', expected an 'ip' for example: '10.0.0.1' or 'fd42:dead:beef::1'")
-			}
-			fieldValue.Set(reflect.ValueOf(ip))
-		case "bool":
-			b, err := strconv.ParseBool(raw)
-			if err != nil {
-				return errors.New("error parsing value for '" + long + "' got, '" + raw + "', expected a 'bool'")
-			}
-			fieldValue.Set(reflect.ValueOf(b))
-		case "list":
-			list := strings.Split(raw, ",")
-			fieldValue.Set(reflect.ValueOf(list))
 		case "string":
 			fieldValue.Set(reflect.ValueOf(raw))
 		default:
