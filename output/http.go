@@ -58,7 +58,7 @@ func newHTTP(config *common.Config, pluginConfig *common.PluginConfig) (Output, 
 	}
 
 	if h.pluginConfig.Config["scheme"] == "" {
-		h.config.Log.Warn.Println("[OUTPUT]", "[HTTP]", "No route definition for the http output plugin, '"+h.pluginConfig.Name+"', using default scheme 'http'.")
+		h.config.Log.Warn.Println("[OUTPUT]", "[HTTP]", "No scheme definition for the http output plugin, '"+h.pluginConfig.Name+"', using default scheme 'http'.")
 		h.pluginConfig.Config["scheme"] = "http"
 	}
 
