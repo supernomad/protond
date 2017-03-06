@@ -86,7 +86,7 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 		js.config.Log.Debug.Printf("[FILTER] [JS] Filter, '%s', cache plugin function 'get' called with key, '%s'.", js.filterConfig.Name, call.Argument(0))
 
 		key, err := call.Argument(0).ToString()
-		if err != nil {
+		if err != nil || strings.Contains(key, "Object") {
 			js.config.Log.Error.Printf("[FILTER] [JS] Filter, '%s', errored with call to 'cache.get', argument was not a string.", js.filterConfig.Name)
 			return otto.Value{}
 		}

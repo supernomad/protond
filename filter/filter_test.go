@@ -210,7 +210,7 @@ func TestJavascriptInternalCacheObjectKeyGet(t *testing.T) {
 		Name: "Test Filter",
 		Code: `
 			events = cache.get({this:"should fail"})
-			if(events.length != 0) {
+			if(events != undefined) {
 				event.failed = true
 			} else {
 				event.failed = false
