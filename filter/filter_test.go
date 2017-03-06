@@ -77,7 +77,7 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
