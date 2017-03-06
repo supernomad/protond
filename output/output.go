@@ -18,6 +18,9 @@ const (
 
 	// TCPOutput defines an output plugin that pushes data to a tcp server.
 	TCPOutput = "tcp"
+
+	// HTTPOutput defines an output plugin that pushes data to an http server.
+	HTTPOutput = "http"
 )
 
 // Output is the interface that plugins must adhere to for operation as an output plugin.
@@ -44,6 +47,8 @@ func New(outputPlugin string, config *common.Config, pluginConfig *common.Plugin
 		return newStdout(config)
 	case TCPOutput:
 		return newTCP(config, pluginConfig)
+	case HTTPOutput:
+		return newHTTP(config, pluginConfig)
 	}
 	return nil, errors.New("specified output plugin does not exist")
 }

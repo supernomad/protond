@@ -111,11 +111,11 @@ func newTCP(config *common.Config, pluginConfig *common.PluginConfig) (Output, e
 	}
 
 	if tcp.pluginConfig.Config["host"] == "" {
-		return nil, errors.New("configuration for the tcp input plugin is missing a host definition")
+		return nil, errors.New("configuration for the tcp output plugin is missing a host definition")
 	}
 
 	if tcp.pluginConfig.Config["port"] == "" {
-		return nil, errors.New("configuration for the tcp input plugin is missing a port definition")
+		return nil, errors.New("configuration for the tcp output plugin is missing a port definition")
 	}
 
 	return tcp, nil
