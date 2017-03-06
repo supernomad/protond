@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Supernomad/protond/alert"
 	"github.com/Supernomad/protond/cache"
 	"github.com/Supernomad/protond/common"
 )
@@ -15,6 +16,7 @@ var (
 	config        *common.Config
 	badCfg        *common.Config
 	internalCache cache.Cache
+	alerts        map[string]alert.Alert
 )
 
 func init() {
@@ -24,10 +26,12 @@ func init() {
 	config = &common.Config{FilterTimeout: filterTimeout, Log: log}
 	badCfg = &common.Config{FilterTimeout: badTimeout, Log: log}
 	internalCache, _ = cache.New(cache.MemoryCache, config, &common.PluginConfig{Name: "memory"})
+	noopAlert, _ := alert.New(alert.NoopAlert, config, nil)
+	alerts = map[string]alert.Alert{"Noop": noopAlert}
 }
 
 func TestNonExistentFilterPlugin(t *testing.T) {
-	nonExistent, err := New("doesn't exist", nil, nil, nil)
+	nonExistent, err := New("doesn't exist", nil, nil, nil, nil)
 	if err == nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -37,7 +41,7 @@ func TestNonExistentFilterPlugin(t *testing.T) {
 }
 
 func TestNoop(t *testing.T) {
-	noop, err := New(NoopFilter, nil, nil, nil)
+	noop, err := New(NoopFilter, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -73,7 +77,7 @@ func TestJavascript(t *testing.T) {
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -116,10 +120,13 @@ func TestJavascriptAlert(t *testing.T) {
 			event.added_field = "woot"
 			event.new_array = ["this", "should", "be", "handled", 1, 2, 3]
 			event.new_object = {"woot": 123, "hello": "world", "sub_array":[1,2,3,"woot"]}
-			alert.emit("Noop", event, {this: "is", extra:["parameters", "that"], are:"sent", to:1, the:2, alert:3, sink:4})
+			alert.emit("Doesn't exist", event)
+			alert.emit({this: "should fail"}, event)
+			alert.emit("Noop", "this should fail")
+			alert.emit("Noop", event)
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -149,7 +156,7 @@ func TestJavascriptInternalCache(t *testing.T) {
 		`,
 	}
 
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -183,7 +190,7 @@ func TestJavascriptInternalCacheGet(t *testing.T) {
 		`,
 	}
 
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -218,7 +225,7 @@ func TestJavascriptInternalCacheObjectKeyGet(t *testing.T) {
 		`,
 	}
 
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -248,7 +255,7 @@ func TestJavascriptInternalCacheObjectKeyStore(t *testing.T) {
 		`,
 	}
 
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -279,7 +286,7 @@ func TestJavascriptInternalCacheStringValueStore(t *testing.T) {
 		`,
 	}
 
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -309,7 +316,7 @@ func TestJavascriptImproperTypeReturn(t *testing.T) {
 			event = "testing"
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -340,7 +347,7 @@ func TestJavascriptImproperScript(t *testing.T) {
 			}, 100)
 		`,
 	}
-	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, config, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}
@@ -375,7 +382,7 @@ func TestJavascriptInterrupt(t *testing.T) {
 			}
 		`,
 	}
-	javascript, err := New(JavascriptFilter, badCfg, filterConfig, internalCache)
+	javascript, err := New(JavascriptFilter, badCfg, filterConfig, internalCache, alerts)
 	if err != nil {
 		t.Fatal("Something is very very wrong.")
 	}

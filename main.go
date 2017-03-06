@@ -39,14 +39,14 @@ func main() {
 
 	filters := make([]filter.Filter, 0)
 	for i := 0; i < len(config.Filters); i++ {
-		temp, err := filter.New(config.Filters[i].Type, config, config.Filters[i], internalCache)
+		temp, err := filter.New(config.Filters[i].Type, config, config.Filters[i], internalCache, nil)
 		handleError(config.Log, err)
 
 		filters = append(filters, temp)
 	}
 
 	if len(filters) == 0 {
-		noop, _ := filter.New(filter.NoopFilter, config, nil, nil)
+		noop, _ := filter.New(filter.NoopFilter, config, nil, nil, nil)
 		filters = append(filters, noop)
 	}
 

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Supernomad/protond/alert"
 	"github.com/Supernomad/protond/cache"
 	"github.com/Supernomad/protond/common"
 	"github.com/robertkrimen/otto"
@@ -43,6 +44,7 @@ const (
 type Javascript struct {
 	config        *common.Config
 	filterConfig  *common.FilterConfig
+	alerts        map[string]alert.Alert
 	internalCache cache.Cache
 }
 
@@ -79,6 +81,25 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 	go interrupt(js, vm)
 
 	vm.Set("_alert", func(call otto.FunctionCall) otto.Value {
+		js.config.Log.Debug.Printf("[FILTER] [JS] Filter, '%s', alert plugin function 'emit' called with plugin name, '%s'.", js.filterConfig.Name, call.Argument(0))
+
+		plugin, err := call.Argument(0).ToString()
+		if err != nil || strings.Contains(plugin, "Object") {
+			js.config.Log.Error.Printf("[FILTER] [JS] Filter, '%s', errored with call to 'alert.emit', first argument was not a string.", js.filterConfig.Name)
+			return otto.Value{}
+		}
+
+		if alert, ok := js.alerts[plugin]; ok {
+			strEvent, _ := call.Argument(1).ToString()
+			data, err := common.ParseEventData(strEvent)
+			if err != nil {
+				js.config.Log.Error.Printf("[FILTER] [JS] Filter, '%s', errored with call to 'cache.store', second argument was not an event object.", js.filterConfig.Name)
+				return otto.Value{}
+			}
+
+			event.Data = data
+			alert.Emit(event)
+		}
 		return otto.Value{}
 	})
 
@@ -87,7 +108,7 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 
 		key, err := call.Argument(0).ToString()
 		if err != nil || strings.Contains(key, "Object") {
-			js.config.Log.Error.Printf("[FILTER] [JS] Filter, '%s', errored with call to 'cache.get', argument was not a string.", js.filterConfig.Name)
+			js.config.Log.Error.Printf("[FILTER] [JS] Filter, '%s', errored with call to 'cache.get', first argument was not a string.", js.filterConfig.Name)
 			return otto.Value{}
 		}
 
@@ -139,11 +160,16 @@ func (js *Javascript) Name() string {
 	return js.filterConfig.Name
 }
 
-func newJavascript(config *common.Config, filterConfig *common.FilterConfig, internalCache cache.Cache) (Filter, error) {
+func newJavascript(config *common.Config, filterConfig *common.FilterConfig, internalCache cache.Cache, alerts map[string]alert.Alert) (Filter, error) {
+	if alerts == nil {
+		alerts = make(map[string]alert.Alert)
+	}
+
 	js := &Javascript{
 		config:        config,
 		filterConfig:  filterConfig,
 		internalCache: internalCache,
+		alerts:        alerts,
 	}
 
 	return js, nil
