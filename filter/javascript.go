@@ -15,8 +15,8 @@ var errHalt = errors.New("filter timed out")
 
 // Javascript is a struct representing the javascript filter plugin.
 type Javascript struct {
-	config    *common.Config
-	filterCfg *common.FilterConfig
+	config       *common.Config
+	filterConfig *common.FilterConfig
 }
 
 func interrupt(js *Javascript, vm *otto.Otto) {
@@ -32,7 +32,7 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 		// Handle an interrupt to the javascript vm running the filter.
 		if caught := recover(); caught != nil {
 			ret = event
-			err = errors.New("filter '" + js.filterCfg.Name + "' paniced with '" + caught.(error).Error() + "' while parsing event: " + event.String(false))
+			err = errors.New("filter '" + js.filterConfig.Name + "' paniced with '" + caught.(error).Error() + "' while parsing event: " + event.String(false))
 		}
 		return
 	}()
@@ -44,7 +44,7 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 
 	vm.Set("event", event.Data)
 
-	value, err := vm.Run(js.filterCfg.Code + "\nJSON.stringify(event)")
+	value, err := vm.Run(js.filterConfig.Code + "\nJSON.stringify(event)")
 	if err != nil {
 		return event, err
 	}
@@ -53,7 +53,7 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 
 	data, err := common.ParseEventData(exported)
 	if err != nil {
-		return event, errors.New("event data is no longer an object after running javascript filter, ensure that 'event' is always an object within the filter '" + js.filterCfg.Name + "', the returned value was: " + exported)
+		return event, errors.New("event data is no longer an object after running javascript filter, ensure that 'event' is always an object within the filter '" + js.filterConfig.Name + "', the returned value was: " + exported)
 	}
 
 	event.Data = data
@@ -62,13 +62,13 @@ func (js *Javascript) Run(event *common.Event) (ret *common.Event, err error) {
 
 // Name returns configured name for the javascript filter.
 func (js *Javascript) Name() string {
-	return js.filterCfg.Name
+	return js.filterConfig.Name
 }
 
-func newJavascript(config *common.Config, filterCfg *common.FilterConfig) (Filter, error) {
+func newJavascript(config *common.Config, filterConfig *common.FilterConfig) (Filter, error) {
 	js := &Javascript{
-		config:    config,
-		filterCfg: filterCfg,
+		config:       config,
+		filterConfig: filterConfig,
 	}
 
 	return js, nil

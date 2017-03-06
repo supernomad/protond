@@ -262,12 +262,12 @@ func (config *Config) computeArgs() error {
 					return err
 				}
 
-				filterCfg := &FilterConfig{
+				filterConfig := &FilterConfig{
 					Type: ext[1:],
 					Name: name,
 					Code: string(fileData),
 				}
-				config.Filters = append(config.Filters, filterCfg)
+				config.Filters = append(config.Filters, filterConfig)
 			default:
 				config.Log.Warn.Printf("Filter file '%s' is not one of the compatible filter types: 'js'.", name)
 			}
